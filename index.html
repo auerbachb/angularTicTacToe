@@ -1,16 +1,27 @@
 <!DOCTYPE html>
-<html>
+<html ng-app="ticTacToe">
 <head>
-  <meta charset="UTF-8" />
   <title>Angular TicTacToe</title>
+  <!-- Style files / Formatting -->
   <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
   <link rel="stylesheet" type="text/css" href="style.css">
 </head>
-<body>
-
-
-
-  <script type="text/javascript" src="app.js"></script>
+<!-- Game Elements -->
+<body ng-controller="BoardController as BoardCtrl">
+  <!-- TicTacToe Board -->
+  <div class="jumbotron vertical-center">
+    <div class="container text-center">
+      <table>
+        <tr ng-repeat="row in BoardCtrl.board">
+          <td ng-repeat="cell in row" ng-click="BoardCtrl.makeMove(cell.idx)">
+            {{cell.player}}
+          </td>
+        </tr>
+      </table>
+    </div>
+  </div>
+  <!-- AngularJS Files -->
   <script type="text/javascript" src="angular.min.js"></script>
+  <script type="text/javascript" src="app.js"></script>
 </body>
 </html>
