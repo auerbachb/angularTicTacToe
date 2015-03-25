@@ -7,7 +7,12 @@
     this.makeMove = function(idx){
       row = (Math.floor(idx/3));
       column = idx%3;
-      this.board[row][column].player = "X";
+      if (this.board[row][column].player === "") {
+        this.board[row][column].player = "X";
+        //computer make move
+        //evaluate for win or loss
+        //message appropriately
+      };
     }
   });
 
