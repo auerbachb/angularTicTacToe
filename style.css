@@ -24,8 +24,9 @@ table td {
 }
 
 /*Class tags to center the board on the screen.\
-**Source: stackoverflow.com/questions/22196587/how-to-center-align-vertically-the-container-in-bootstrap
-**        author: Hashem Qolami
+**Source:  stackoverflow.com/questions/22196587/how-to-center-align-vertically-the-container-in-bootstrap
+**Preview: http://jsbin.com/vuyub/5/edit?html,js,output
+**author:  Hashem Qolami
 */
 
 .container{
@@ -64,3 +65,29 @@ table td {
 .marginRow{
  margin-bottom:0px !important;
  }
+
+
+/*Class tags to fade in and fade out elements.\
+**Source:  http://stackoverflow.com/questions/19607595/how-can-i-fade-in-and-then-fade-out-text-inside-a-div
+**Preview: http://plnkr.co/edit/jBukeP?p=preview
+**Author:  tasseKATT
+*/
+
+.fadein.ng-hide-remove,
+.fadeout.ng-hide-add {
+    -webkit-transition: 400ms ease-in-out all;
+    -moz-transition: 400ms ease-in-out all;
+    -o-transition: 400ms ease-in-out all;
+    transition: 400ms ease-in-out all;
+    display: block !important;
+}
+
+.fadein.ng-hide-remove,
+.fadeout.ng-hide-add.ng-hide-add-active {
+    opacity: 0;
+}
+
+.fadeout.ng-hide-add,
+.fadein.ng-hide-remove.ng-hide-remove-active {
+    opacity: 1;
+}
