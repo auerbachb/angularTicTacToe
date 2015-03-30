@@ -9,6 +9,11 @@
 
   app.controller('BoardController', function(){
 
+    this.activePlayer = "X"
+    this.XWINS = [7, 56, 73, 84, 146, 273, 292, 448];                 // Integer values representing wins
+    this.OWINS = [3584, 28672, 37376, 43008,
+               74752, 139776, 149504, 229376];
+
     this.newBoard = function(){
       return {
         integerBoard: 0,
@@ -26,6 +31,25 @@
       this.integerBoard = this.board.integerBoard;
     }
 
+    this.gameWon = function(turn, intBoard) {                         // Tests board for win values
+    if (turn === "X") {                                               // If it's x's turn
+      for (var i = 0; i < this.XWINS.length; i++) {
+        if ((this.XWINS[i] | intBoard) === intBoard) {                // Check if x win values are on the board with
+          console.log("X won")
+          return true;                                                // binary or and return true if value found
+        } // replace true with obj holding true + a message
+      }
+    } else {                                                          // If it's o's turn
+      for (var i = 0; i < this.OWINS.length; i++) {
+        if ((this.OWINS[i] | intBoard) === intBoard) {                // Check if o win values are on the board with
+          console.log("O won")
+          return true;                                                // binary or and return true if value found
+        } // replace true with obj holding true + a message
+      }
+    }
+    return false;                                                     // If no wins found, no one has won, return false
+  }
+
     this.makeMove = function(idx){
       row = (Math.floor(idx/3));
       column = idx%3;
@@ -35,7 +59,11 @@
         power = activeCell.idx;
         this.integerBoard += Math.pow(2,power);
         console.log('integer board value should show updated value: ', this.integerBoard)
-        //computer make move
+        this.gameWon("X", this.integerBoard);
+        //check against human wins array
+        // if winner, announce
+        // else
+          //computer make move
         //evaluate for win or loss
         //message appropriately
       };
