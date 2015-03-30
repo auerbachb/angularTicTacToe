@@ -36,15 +36,15 @@
       for (var i = 0; i < this.XWINS.length; i++) {
         if ((this.XWINS[i] | intBoard) === intBoard) {                // Check if x win values are on the board with
           console.log("X won")
-          return true;                                                // binary or and return true if value found
-        } // replace true with obj holding true + a message
+          return {won: true, msg: "X has won."};                      // binary or and return true if value found
+        }
       }
     } else {                                                          // If it's o's turn
       for (var i = 0; i < this.OWINS.length; i++) {
         if ((this.OWINS[i] | intBoard) === intBoard) {                // Check if o win values are on the board with
           console.log("O won")
-          return true;                                                // binary or and return true if value found
-        } // replace true with obj holding true + a message
+          return {won: true, msg: "O has won."};                      // binary or and return true if value found
+        }
       }
     }
     return false;                                                     // If no wins found, no one has won, return false
@@ -59,9 +59,10 @@
         power = activeCell.idx;
         this.integerBoard += Math.pow(2,power);
         console.log('integer board value should show updated value: ', this.integerBoard)
-        this.gameWon("X", this.integerBoard);
-        //check against human wins array
-        // if winner, announce
+        winner = this.gameWon("X", this.integerBoard);
+        if (winner.won === true){
+          alert(winner.msg);
+        };
         // else
           //computer make move
         //evaluate for win or loss
