@@ -1,5 +1,5 @@
 (function() {
-  var app = angular.module('ticTacToe', []);
+  var app = angular.module('ticTacToe', ['ngAnimate']);
 
   app.service('AIPlayerService', function(){
     this.aiMove = function(){
