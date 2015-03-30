@@ -12,14 +12,14 @@
   <div class="jumbotron vertical-center">
     <div class="container text-center">
       <table>
-        <tr ng-repeat="row in BoardCtrl.board">
+        <tr ng-repeat="row in BoardCtrl.arrayBoard">
           <td ng-repeat="cell in row" ng-click="BoardCtrl.makeMove(cell.idx)">
             {{cell.mark}}
           </td>
         </tr>
       </table>
       <br>
-      <a ng-click="newGame()" class="btn-primary btn h2 lightBlue">START NEW GAME</a>
+      <a ng-click="BoardCtrl.newGame()" class="btn-primary btn h2 lightBlue">START NEW GAME</a>
     </div>
   </div>
   <!-- AngularJS Files -->
