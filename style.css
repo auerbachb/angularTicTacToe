@@ -47,9 +47,8 @@ table td {
 }
 
 .vertical-center > .container {
-  max-width: 100%;
+  min-width: 310px;
   background-color: GhostWhite;
-
   display: inline-block;
   vertical-align: middle;  /* vertical alignment of the inline element */
   font: 16px/1 "Helvetica Neue", Helvetica, Arial, sans-serif;        /* <-- reset the font property */
