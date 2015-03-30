@@ -1,14 +1,25 @@
 (function() {
   var app = angular.module('ticTacToe', []);
 
+  app.service('AIPlayerService', function(){
+    this.aiMove = function(){
+      console.log('aiPlayer makes a move');
+    };
+  });
+
   app.controller('BoardController', function(){
-    this.board = board;
+    this.board = board.arrayBoard;
+    this.integerBoard = board.integerBoard;
 
     this.makeMove = function(idx){
       row = (Math.floor(idx/3));
       column = idx%3;
-      if (this.board[row][column].player === "") {
-        this.board[row][column].player = "X";
+      activeCell = this.board[row][column];
+      if (activeCell.mark === "") {
+        activeCell.mark = "X";
+        power = activeCell.idx;
+        this.integerBoard += Math.pow(2,power);
+        console.log('integer board value should show updated value: ', this.integerBoard)
         //computer make move
         //evaluate for win or loss
         //message appropriately
@@ -16,9 +27,13 @@
     }
   });
 
-  var board = [
-    [{idx: 0, player: ""},{idx: 1, player: ""},{idx: 2, player: ""}],
-    [{idx: 3, player: ""},{idx: 4, player: ""},{idx: 5, player: ""}],
-    [{idx: 6, player: ""},{idx: 7, player: ""},{idx: 8, player: ""}]
-  ];
+  var board = {
+    integerBoard: 0,
+    arrayBoard: [
+      [{idx: 0, mark: ""},{idx: 1, mark: ""},{idx: 2, mark: ""}],
+      [{idx: 3, mark: ""},{idx: 4, mark: ""},{idx: 5, mark: ""}],
+      [{idx: 6, mark: ""},{idx: 7, mark: ""},{idx: 8, mark: ""}]
+    ]
+  };
+
 })();
