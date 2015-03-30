@@ -8,13 +8,28 @@
   });
 
   app.controller('BoardController', function(){
-    this.board = board.arrayBoard;
-    this.integerBoard = board.integerBoard;
+
+    this.newBoard = function(){
+      return {
+        integerBoard: 0,
+        arrayBoard: [
+        [{idx: 0, mark: ""},{idx: 1, mark: ""},{idx: 2, mark: ""}],
+        [{idx: 3, mark: ""},{idx: 4, mark: ""},{idx: 5, mark: ""}],
+        [{idx: 6, mark: ""},{idx: 7, mark: ""},{idx: 8, mark: ""}]
+        ]
+      };
+    };
+
+    this.newGame = function(){
+      this.board = this.newBoard();
+      this.arrayBoard = this.board.arrayBoard;
+      this.integerBoard = this.board.integerBoard;
+    }
 
     this.makeMove = function(idx){
       row = (Math.floor(idx/3));
       column = idx%3;
-      activeCell = this.board[row][column];
+      activeCell = this.arrayBoard[row][column];
       if (activeCell.mark === "") {
         activeCell.mark = "X";
         power = activeCell.idx;
@@ -26,14 +41,4 @@
       };
     }
   });
-
-  var board = {
-    integerBoard: 0,
-    arrayBoard: [
-      [{idx: 0, mark: ""},{idx: 1, mark: ""},{idx: 2, mark: ""}],
-      [{idx: 3, mark: ""},{idx: 4, mark: ""},{idx: 5, mark: ""}],
-      [{idx: 6, mark: ""},{idx: 7, mark: ""},{idx: 8, mark: ""}]
-    ]
-  };
-
 })();
