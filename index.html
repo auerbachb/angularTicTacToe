@@ -14,7 +14,7 @@
       <table>
         <tr ng-repeat="row in BoardCtrl.board">
           <td ng-repeat="cell in row" ng-click="BoardCtrl.makeMove(cell.idx)">
-            {{cell.player}}
+            {{cell.mark}}
           </td>
         </tr>
       </table>
