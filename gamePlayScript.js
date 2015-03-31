@@ -27,48 +27,65 @@
       };
 
       this.newGame = function(){
-        this.winner = {won: false};
+        this.gameOverVal = false;
         this.board = this.newBoard();
-        this.arrayBoard = this.board.arrayBoard;
-        this.integerBoard = this.board.integerBoard;
-      }
+      };
 
       this.gameWon = function(turn, intBoard){                        // Tests board for win values
         if (turn === "X"){                                            // If it's x's turn
           for (var i = 0; i < this.XWINS.length; i++){
+            console.log("intBoard ", intBoard);
             if ((this.XWINS[i] | intBoard) === intBoard){             // Check if x win values are on the board with
-              console.log("X won")
+              console.log("X won");
               return{won: true, msg: "X HAS WON"};                    // binary or and return true if value found
             }
           }
         } else{                                                       // If it's o's turn
-        for (var i = 0; i < this.OWINS.length; i++){
+          for (var i = 0; i < this.OWINS.length; i++){
             if ((this.OWINS[i] | intBoard) === intBoard){             // Check if o win values are on the board with
-              console.log("O won")
+              console.log("O won");
               return{won: true, msg: "O HAS WON"};                    // binary or and return true if value found
             }
           }
         }
         return {won: false};;                                         // If no wins found, no one has won, return false
-      }
+      };
 
-      this.makeMove = function(idx){
-        row = (Math.floor(idx/3));
-        column = idx%3;
-        activeCell = this.arrayBoard[row][column];
-        if (activeCell.mark === "" && !this.winner.won){
-          activeCell.mark = "X";
-          power = activeCell.idx;
-          this.integerBoard += Math.pow(2,power);
-          console.log('integer board value should show updated value: ', this.integerBoard)
-          this.winner = this.gameWon("X", this.integerBoard);
-          if (this.winner.won === true){
+      this.gameOver = function(turn, board){
+        this.winner = this.gameWon(turn, board.integerBoard);
+        console.log("this.winner.won ", this.winner.won);
+        if (this.winner.won === true){
+            console.log('in this.winner.won === true scenario')
             this.gameOverMessage = this.winner.msg;
             $scope.showMessage = true;
             $timeout(function(){                                      // Delay hiding of message for fade in and fade out to run
               $scope.showMessage = false;
             }, 2000);
+            return true;
+            console.log('no one won')
+        } else {
+          for (var i=0; i < board.arrayBoard.length; i++){
+            for(var j=0; j < board.arrayBoard[i].length; j++){
+              if (board.arrayBoard[i][j].mark === ""){
+                return false;
+              }
+            }
           };
+        return true;
+        }
+      };
+
+      this.makeMove = function(idx){
+        row = (Math.floor(idx/3));
+        column = idx%3;
+        activeCell = this.board.arrayBoard[row][column];
+        if (activeCell.mark === "" && !this.gameOverVal){
+          activeCell.mark = "X";
+          power = activeCell.idx;
+          this.board.integerBoard += Math.pow(2,power);
+          console.log('integer board value should show updated value: ', this.board.integerBoard);
+          this.gameOverVal = this.gameOver("X", this.board);
+          console.log('gameOverVal: ', this.gameOverVal)
           //else
           //computer make move
           //evaluate for win or loss
