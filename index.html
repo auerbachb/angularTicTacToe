@@ -11,6 +11,11 @@
   <!-- TicTacToe Board -->
   <div class="jumbotron vertical-center">
     <div class="container text-center">
+    <div class="message-box">
+      <div ng-show="showMessage" class="message fadein fadeout">
+        {{BoardCtrl.gameOverMessage}}
+      </div>
+    </div>
       <table>
         <tr ng-repeat="row in BoardCtrl.arrayBoard">
           <td ng-repeat="cell in row" ng-click="BoardCtrl.makeMove(cell.idx)">
@@ -19,7 +24,7 @@
         </tr>
       </table>
       <br>
-      <a ng-click="BoardCtrl.newGame()" class="btn-primary btn h2 lightBlue">START NEW GAME</a>
+      <a ng-click="BoardCtrl.newGame()" class="top-margin btn btn-large btn-block h2" ng-class="{'btn-primary' : BoardCtrl.winner.won === true}">START NEW GAME</a>
     </div>
   </div>
   <!-- AngularJS Files -->
