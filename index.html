@@ -17,14 +17,14 @@
       </div>
     </div>
       <table>
-        <tr ng-repeat="row in BoardCtrl.arrayBoard">
+        <tr ng-repeat="row in BoardCtrl.board.arrayBoard">
           <td ng-repeat="cell in row" ng-click="BoardCtrl.makeMove(cell.idx)">
             {{cell.mark}}
           </td>
         </tr>
       </table>
       <br>
-      <a ng-click="BoardCtrl.newGame()" class="top-margin btn btn-large btn-block h2" ng-class="{'btn-primary' : BoardCtrl.winner.won === true}">START NEW GAME</a>
+      <a ng-click="BoardCtrl.newGame()" class="top-margin btn btn-large btn-block h2" ng-class="{'btn-primary' : BoardCtrl.gameOverVal === true}">START NEW GAME</a>
     </div>
   </div>
   <!-- AngularJS Files -->
