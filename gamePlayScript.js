@@ -71,6 +71,11 @@
               }
             }
           };
+        this.gameOverMessage = "IT'S A DRAW";
+        $scope.showMessage = true;
+        $timeout(function(){                                      // Delay hiding of message for fade in and fade out to run
+          $scope.showMessage = false;
+        }, 2000);
         return true;
         }
       };
@@ -90,6 +95,19 @@
 
         if (!this.gameOverVal){
           //aiMakeMove
+          this.pickMove = function(){
+            for (var i=0; i < this.board.arrayBoard.length; i++){
+              for(var j=0; j < this.board.arrayBoard[i].length; j++){
+                if (this.board.arrayBoard[i][j].mark === ""){
+                  return {row: i, column: j};
+                }
+              }
+            };
+          };
+          this.openMove = this.pickMove();
+          this.board.arrayBoard[this.openMove.row][this.openMove.column].mark = "O";
+          this.board.integerBoard += 512*Math.pow(2,(this.openMove.row*3 + this.openMove.column));
+          console.log('integer board value should show updated value: ', this.board.integerBoard);
           this.gameOverVal = this.gameOver("O", this.board);
         };
       }
