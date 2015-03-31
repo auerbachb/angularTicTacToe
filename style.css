@@ -79,6 +79,7 @@ table td {
 .message {
   font: 50px sans-serif;
   font-weight: 900;
+  color: #006dcc;
 }
 
 .fadein.ng-hide-remove,
