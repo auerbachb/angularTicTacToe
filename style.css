@@ -23,14 +23,15 @@ table td {
   border: 3px solid DimGray ;
 }
 
-/*Class tags to center the board on the screen.\
-**Source:  stackoverflow.com/questions/22196587/how-to-center-align-vertically-the-container-in-bootstrap
-**Preview: http://jsbin.com/vuyub/5/edit?html,js,output
-**author:  Hashem Qolami
+/*DESCRIPTION: Class tags to center the board on the screen.\
+**SOURCE:      stackoverflow.com/questions/22196587/how-to-center-align-vertically-the-container-in-bootstrap
+**PREVIEW:     http://jsbin.com/vuyub/5/edit?html,js,output
+**AUTHOR:      Hashem Qolami (Modified by Bretton Auerbach)
 */
 
 .container{
-  width:300px;
+  width:310px;
+  min-height: 450px;
 }
 
 .vertical-center {
@@ -55,30 +56,37 @@ table td {
   font: 16px/1 "Helvetica Neue", Helvetica, Arial, sans-serif;        /* <-- reset the font property */
 }
 
-@media (max-width: 768px) {
-  .vertical-center:before {
-    /* height: auto; */
-    display: none;
-  }
+.marginRow{
+  margin-bottom:0px !important;
 }
 
-.marginRow{
- margin-bottom:0px !important;
- }
+.top-margin{
+  margin-top: 30px;
+}
 
-
-/*Class tags to fade in and fade out elements.\
-**Source:  http://stackoverflow.com/questions/19607595/how-can-i-fade-in-and-then-fade-out-text-inside-a-div
-**Preview: http://plnkr.co/edit/jBukeP?p=preview
-**Author:  tasseKATT
+/*DESCRIPTION: Class tags to fade in and fade out elements.\
+**SOURCE:      http://stackoverflow.com/questions/19607595/how-can-i-fade-in-and-then-fade-out-text-inside-a-div
+**PREVIEW:     http://plnkr.co/edit/jBukeP?p=preview
+**AUTHOR:      tasseKATT
 */
+
+.message-box{
+  vertical-align: top;
+  min-height: 60px;
+  min-width: 310px;
+}
+
+.message {
+  font: 50px sans-serif;
+  font-weight: 900;
+}
 
 .fadein.ng-hide-remove,
 .fadeout.ng-hide-add {
-    -webkit-transition: 400ms ease-in-out all;
-    -moz-transition: 400ms ease-in-out all;
-    -o-transition: 400ms ease-in-out all;
-    transition: 400ms ease-in-out all;
+    -webkit-transition: 1000ms linear all;
+    -moz-transition: 1000ms linear all;
+    -o-transition: 1000ms linear all;
+    transition: 1000ms linear all;
     display: block !important;
 }
 
