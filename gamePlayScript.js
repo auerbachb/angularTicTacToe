@@ -86,10 +86,11 @@
           console.log('integer board value should show updated value: ', this.board.integerBoard);
           this.gameOverVal = this.gameOver("X", this.board);
           console.log('gameOverVal: ', this.gameOverVal)
-          //else
-          //computer make move
-          //evaluate for win or loss
-          //message appropriately
+        };
+
+        if (!this.gameOverVal){
+          //aiMakeMove
+          this.gameOverVal = this.gameOver("O", this.board);
         };
       }
       // On load this calls the newGame method, because Angular Documentation advises against
