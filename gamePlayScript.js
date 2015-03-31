@@ -2,13 +2,19 @@
   var app = angular.module('ticTacToe', ['ngAnimate']);
 
   app.service('AIPlayerService', function(){
-    this.aiMove = function(){
-      console.log('aiPlayer makes a move');
+    this.getMove = function(board){
+      for (var i=0; i < board.arrayBoard.length; i++){
+        for(var j=0; j < board.arrayBoard[i].length; j++){
+          if (board.arrayBoard[i][j].mark === ""){
+            return {row: i, column: j};
+          }
+        }
+      };
     };
   });
 
-  app.controller('BoardController', ['$scope', '$timeout',
-    function($scope, $timeout){
+  app.controller('BoardController', ['$scope', '$timeout', 'AIPlayerService',
+    function($scope, $timeout, AIPlayerService){
 
       this.activePlayer = "X"
       this.XWINS = [7, 56, 73, 84, 146, 273, 292, 448];               // Integer values representing wins
@@ -95,16 +101,7 @@
 
         if (!this.gameOverVal){
           //aiMakeMove
-          this.pickMove = function(){
-            for (var i=0; i < this.board.arrayBoard.length; i++){
-              for(var j=0; j < this.board.arrayBoard[i].length; j++){
-                if (this.board.arrayBoard[i][j].mark === ""){
-                  return {row: i, column: j};
-                }
-              }
-            };
-          };
-          this.openMove = this.pickMove();
+          this.openMove = AIPlayerService.getMove(this.board);
           this.board.arrayBoard[this.openMove.row][this.openMove.column].mark = "O";
           this.board.integerBoard += 512*Math.pow(2,(this.openMove.row*3 + this.openMove.column));
           console.log('integer board value should show updated value: ', this.board.integerBoard);
