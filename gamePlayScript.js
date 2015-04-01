@@ -23,9 +23,6 @@
   app.controller('BoardController', ['$scope', '$timeout', 'AIPlayerService', 'winsFor',
     function($scope, $timeout, AIPlayerService, winsFor){
 
-
-      this.activePlayer = "X"
-
       this.newBoard = function(){
         return{
           integerBoard: 0,
@@ -52,6 +49,7 @@
         return {won: false};;                                         // If no wins found, no one has won, return false
       };
 
+      //see note to self 1
       this.gameOver = function(turn, board){
         this.winner = this.gameWon(turn, board.integerBoard);
         console.log("this.winner.won ", this.winner.won);
@@ -85,7 +83,7 @@
         row = (Math.floor(idx/3));
         column = idx%3;
         activeCell = this.board.arrayBoard[row][column];
-        if (activeCell.mark === "" && !this.gameOverVal){
+        if (activeCell.mark === "" && !this.gameOverVal){ //O went last so test if O won
           activeCell.mark = "X";
           power = activeCell.idx;
           this.board.integerBoard += Math.pow(2,power);
