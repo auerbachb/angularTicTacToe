@@ -23,10 +23,8 @@
   app.controller('BoardController', ['$scope', '$timeout', 'AIPlayerService', 'winsFor',
     function($scope, $timeout, AIPlayerService, winsFor){
 
+
       this.activePlayer = "X"
-      this.XWINS = [7, 56, 73, 84, 146, 273, 292, 448];               // Integer values representing wins
-      this.OWINS = [3584, 28672, 37376, 43008,
-      74752, 139776, 149504, 229376];
 
       this.newBoard = function(){
         return{
