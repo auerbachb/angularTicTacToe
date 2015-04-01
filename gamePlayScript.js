@@ -50,16 +50,13 @@
 
       this.gameOver = function(turn, board){
         this.winner = this.gameWon(turn, board.integerBoard);
-        console.log("this.winner ", this.winner);
         if (this.winner === true){
-            console.log('in this.winner === true scenario')
             this.gameOverMessage = turn + " HAS WON";
             $scope.showMessage = true;
             $timeout(function(){                             // Delay hiding of message for fade in and fade out to run
               $scope.showMessage = false;
             }, 2000);
             return true;
-            console.log('no one won')
         } else {
           for (var i=0; i < board.arrayBoard.length; i++){
             for(var j=0; j < board.arrayBoard[i].length; j++){
