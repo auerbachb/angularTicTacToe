@@ -61,6 +61,15 @@
         return false;                                                 // If binary or doesn't change intBoard no one won
       };
 
+      this.gameDraw = function(){
+        for (var i=0; i < boardSize; i++){
+          if (this.open(this.cellAt(i))){
+            return false;
+          };
+        }
+        return true;
+      };
+
       this.showGameOverMessage = function(status){
         this.gameOverMessage = status;
         $scope.showMessage = true;
@@ -73,15 +82,11 @@
         if (this.gameWon(turn, board.integerBoard)){
           this.showGameOverMessage(turn + " HAS WON");
           return true;
-        } else {
-          for (var i=0; i < boardSize; i++){
-            if (this.open(this.cellAt(i))){
-              return false;
-            };
-          }
-        this.showGameOverMessage("IT'S A DRAW");
-        return true;
+        } else if (this.gameDraw()){
+          this.showGameOverMessage("IT'S A DRAW");
+          return true;
         }
+        return false;
       };
 
       this.makeMove = function(index){
