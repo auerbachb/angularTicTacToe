@@ -40,16 +40,14 @@
       };
 
       this.gameWon = function(turn, intBoard){                        // Tests board for win values
-          for (var i = 0; i < winsFor[turn].length; i++){
-            console.log("intBoard ", intBoard);
-            if ((winsFor[turn][i] | intBoard) === intBoard){             // Check if x win values are on the board with
+          for (var winValue of winsFor[turn]){
+            if ((winValue | intBoard) === intBoard){             // Check if x win values are on the board with
               return{won: true, msg: turn + " HAS WON"};                    // binary or and return true if value found
             }
           }
         return {won: false};;                                         // If no wins found, no one has won, return false
       };
 
-      //see note to self 1
       this.gameOver = function(turn, board){
         this.winner = this.gameWon(turn, board.integerBoard);
         console.log("this.winner.won ", this.winner.won);
