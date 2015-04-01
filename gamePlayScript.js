@@ -1,8 +1,15 @@
 (function(){
   var app = angular.module('ticTacToe', ['ngAnimate']);
 
+  app.constant('winsFor', {
+                           X: [7, 56, 73, 84, 146, 273, 292, 448],
+                           O: [3584, 28672, 37376, 43008,
+                               74752, 139776, 149504, 229376]
+                          }
+  );
+
   app.service('AIPlayerService', function(){
-    this.getMove = function(board){
+    this.getMinimaxMove = function(board){
       for (var i=0; i < board.arrayBoard.length; i++){
         for(var j=0; j < board.arrayBoard[i].length; j++){
           if (board.arrayBoard[i][j].mark === ""){
@@ -13,8 +20,8 @@
     };
   });
 
-  app.controller('BoardController', ['$scope', '$timeout', 'AIPlayerService',
-    function($scope, $timeout, AIPlayerService){
+  app.controller('BoardController', ['$scope', '$timeout', 'AIPlayerService', 'winsFor',
+    function($scope, $timeout, AIPlayerService, winsFor){
 
       this.activePlayer = "X"
       this.XWINS = [7, 56, 73, 84, 146, 273, 292, 448];               // Integer values representing wins
@@ -38,22 +45,12 @@
       };
 
       this.gameWon = function(turn, intBoard){                        // Tests board for win values
-        if (turn === "X"){                                            // If it's x's turn
-          for (var i = 0; i < this.XWINS.length; i++){
+          for (var i = 0; i < winsFor[turn].length; i++){
             console.log("intBoard ", intBoard);
-            if ((this.XWINS[i] | intBoard) === intBoard){             // Check if x win values are on the board with
-              console.log("X won");
-              return{won: true, msg: "X HAS WON"};                    // binary or and return true if value found
+            if ((winsFor[turn][i] | intBoard) === intBoard){             // Check if x win values are on the board with
+              return{won: true, msg: turn + " HAS WON"};                    // binary or and return true if value found
             }
           }
-        } else{                                                       // If it's o's turn
-          for (var i = 0; i < this.OWINS.length; i++){
-            if ((this.OWINS[i] | intBoard) === intBoard){             // Check if o win values are on the board with
-              console.log("O won");
-              return{won: true, msg: "O HAS WON"};                    // binary or and return true if value found
-            }
-          }
-        }
         return {won: false};;                                         // If no wins found, no one has won, return false
       };
 
@@ -64,7 +61,7 @@
             console.log('in this.winner.won === true scenario')
             this.gameOverMessage = this.winner.msg;
             $scope.showMessage = true;
-            $timeout(function(){                                      // Delay hiding of message for fade in and fade out to run
+            $timeout(function(){                             // Delay hiding of message for fade in and fade out to run
               $scope.showMessage = false;
             }, 2000);
             return true;
@@ -79,7 +76,7 @@
           };
         this.gameOverMessage = "IT'S A DRAW";
         $scope.showMessage = true;
-        $timeout(function(){                                      // Delay hiding of message for fade in and fade out to run
+        $timeout(function(){                                // Delay hiding of message for fade in and fade out to run
           $scope.showMessage = false;
         }, 2000);
         return true;
@@ -97,15 +94,14 @@
           console.log('integer board value should show updated value: ', this.board.integerBoard);
           this.gameOverVal = this.gameOver("X", this.board);
           console.log('gameOverVal: ', this.gameOverVal)
-        };
-
-        if (!this.gameOverVal){
-          //aiMakeMove
-          this.openMove = AIPlayerService.getMove(this.board);
-          this.board.arrayBoard[this.openMove.row][this.openMove.column].mark = "O";
-          this.board.integerBoard += 512*Math.pow(2,(this.openMove.row*3 + this.openMove.column));
-          console.log('integer board value should show updated value: ', this.board.integerBoard);
-          this.gameOverVal = this.gameOver("O", this.board);
+          if (!this.gameOverVal){
+            //aiMakeMove
+            this.openMove = AIPlayerService.getMinimaxMove(this.board);
+            this.board.arrayBoard[this.openMove.row][this.openMove.column].mark = "O";
+            this.board.integerBoard += 512*Math.pow(2,(this.openMove.row*3 + this.openMove.column));
+            console.log('integer board value should show updated value: ', this.board.integerBoard);
+            this.gameOverVal = this.gameOver("O", this.board);
+          };
         };
       }
       // On load this calls the newGame method, because Angular Documentation advises against
