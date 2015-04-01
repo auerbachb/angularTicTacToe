@@ -41,6 +41,16 @@
         this.board = this.newBoard();
       };
 
+      this.cellAt = function(index){
+        row = (Math.floor(index/3));
+        column = index%3;
+        return this.board.arrayBoard[row][column];
+      };
+
+      this.open = function(cell){
+        return (cell.mark === "");
+      };
+
       this.gameWon = function(turn, intBoard){                        // Search board for win values
           for (var winValue of winsFor[turn]){                        // Choose array for X or O (cut iterations in 1/2)
             if ((winValue | intBoard) === intBoard){                  // Check if x win values are on the board with
@@ -72,16 +82,6 @@
         }, 2000);
         return true;
         }
-      };
-
-      this.cellAt = function(index){
-        row = (Math.floor(index/3));
-        column = index%3;
-        return this.board.arrayBoard[row][column];
-      };
-
-      this.open = function(cell){
-        return (cell.mark === "");
       };
 
       this.makeMove = function(index){
