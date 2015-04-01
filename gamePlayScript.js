@@ -6,12 +6,14 @@
                            O: [3584, 28672, 37376, 43008,
                                74752, 139776, 149504, 229376]
                           }
-  );
+  )
+
+  app.constant('boardSize', 9);
 
   app.service('AIPlayerService', function(){
     this.getMinimaxMove = function(board){
       for (var i=0; i < board.arrayBoard.length; i++){
-        for(var j=0; j < board.arrayBoard[i].length; j++){
+        for (var j=0; j < board.arrayBoard[i].length; j++){
           if (board.arrayBoard[i][j].mark === ""){
             return {row: i, column: j};
           }
@@ -20,8 +22,8 @@
     };
   });
 
-  app.controller('BoardController', ['$scope', '$timeout', 'AIPlayerService', 'winsFor',
-    function($scope, $timeout, AIPlayerService, winsFor){
+  app.controller('BoardController', ['$scope', '$timeout', 'AIPlayerService', 'winsFor', 'boardSize',
+    function($scope, $timeout, AIPlayerService, winsFor, boardSize){
 
       this.newBoard = function(){
         return{
@@ -58,13 +60,11 @@
             }, 2000);
             return true;
         } else {
-          for (var i=0; i < board.arrayBoard.length; i++){
-            for(var j=0; j < board.arrayBoard[i].length; j++){
-              if (board.arrayBoard[i][j].mark === ""){
-                return false;
-              }
-            }
-          };
+          for (var i=0; i < boardSize; i++){
+            if (this.open(this.cellAt(i))){
+              return false;
+            };
+          }
         this.gameOverMessage = "IT'S A DRAW";
         $scope.showMessage = true;
         $timeout(function(){                                // Delay hiding of message for fade in and fade out to run
@@ -74,14 +74,21 @@
         }
       };
 
-      this.makeMove = function(idx){
-        row = (Math.floor(idx/3));
-        column = idx%3;
-        activeCell = this.board.arrayBoard[row][column];
-        if (activeCell.mark === "" && !this.gameOverVal){ //O went last so test if O won
-          activeCell.mark = "X";
-          power = activeCell.idx;
-          this.board.integerBoard += Math.pow(2,power);
+      this.cellAt = function(index){
+        row = (Math.floor(index/3));
+        column = index%3;
+        return this.board.arrayBoard[row][column];
+      };
+
+      this.open = function(cell){
+        return (cell.mark === "");
+      };
+
+      this.makeMove = function(index){
+        moveCell = this.cellAt(index);
+        if (this.open(moveCell) && !this.gameOverVal){ //O went last so test if O won
+          moveCell.mark = "X";
+          this.board.integerBoard += Math.pow(2,index);
           console.log('integer board value should show updated value: ', this.board.integerBoard);
           this.gameOverVal = this.gameOver("X", this.board);
           console.log('gameOverVal: ', this.gameOverVal)
