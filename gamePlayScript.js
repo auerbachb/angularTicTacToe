@@ -39,6 +39,7 @@
       this.newGame = function(){
         this.gameOverVal = false;
         this.board = this.newBoard();
+        $scope.showMessage = false;                                   // Remove gameOverMessage faster if button clicked
       };
 
       this.cellAt = function(index){
@@ -60,26 +61,25 @@
         return false;                                                 // If binary or doesn't change intBoard no one won
       };
 
+      this.showGameOverMessage = function(status){
+        this.gameOverMessage = status;
+        $scope.showMessage = true;
+        $timeout(function(){                             // Delay hiding of message for fade in and fade out to run
+          $scope.showMessage = false;
+        }, 2000);
+      };
+
       this.gameOver = function(turn, board){
-        this.winner = this.gameWon(turn, board.integerBoard);
-        if (this.winner === true){
-            this.gameOverMessage = turn + " HAS WON";
-            $scope.showMessage = true;
-            $timeout(function(){                             // Delay hiding of message for fade in and fade out to run
-              $scope.showMessage = false;
-            }, 2000);
-            return true;
+        if (this.gameWon(turn, board.integerBoard)){
+          this.showGameOverMessage(turn + " HAS WON");
+          return true;
         } else {
           for (var i=0; i < boardSize; i++){
             if (this.open(this.cellAt(i))){
               return false;
             };
           }
-        this.gameOverMessage = "IT'S A DRAW";
-        $scope.showMessage = true;
-        $timeout(function(){                                // Delay hiding of message for fade in and fade out to run
-          $scope.showMessage = false;
-        }, 2000);
+        this.showGameOverMessage("IT'S A DRAW");
         return true;
         }
       };
