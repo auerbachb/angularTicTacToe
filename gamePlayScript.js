@@ -39,21 +39,21 @@
         this.board = this.newBoard();
       };
 
-      this.gameWon = function(turn, intBoard){                        // Tests board for win values
-          for (var winValue of winsFor[turn]){
-            if ((winValue | intBoard) === intBoard){             // Check if x win values are on the board with
-              return{won: true, msg: turn + " HAS WON"};                    // binary or and return true if value found
+      this.gameWon = function(turn, intBoard){                        // Search board for win values
+          for (var winValue of winsFor[turn]){                        // Choose array for X or O (cut iterations in 1/2)
+            if ((winValue | intBoard) === intBoard){                  // Check if x win values are on the board with
+              return true;                                            // binary or and return true if value found
             }
           }
-        return {won: false};;                                         // If no wins found, no one has won, return false
+        return false;                                                 // If binary or doesn't change intBoard no one won
       };
 
       this.gameOver = function(turn, board){
         this.winner = this.gameWon(turn, board.integerBoard);
-        console.log("this.winner.won ", this.winner.won);
-        if (this.winner.won === true){
-            console.log('in this.winner.won === true scenario')
-            this.gameOverMessage = this.winner.msg;
+        console.log("this.winner ", this.winner);
+        if (this.winner === true){
+            console.log('in this.winner === true scenario')
+            this.gameOverMessage = turn + " HAS WON";
             $scope.showMessage = true;
             $timeout(function(){                             // Delay hiding of message for fade in and fade out to run
               $scope.showMessage = false;
