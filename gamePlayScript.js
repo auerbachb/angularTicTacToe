@@ -1,15 +1,19 @@
+//ultimately separate files as per https://github.com/angular/angular-phonecat
+//maybe move game stuff from index into a view and use view directive plus route to insert it
+//this way you can add a link to about to show you know how to use routers in angular, use the ui_router
+
 (function(){                                                          // Anonymous function wrapper for scope control
                                                                       // and to maintain privacy of code (if minified,
                                                                       // matters less)
 var app = angular.module('ticTacToe', ['ngAnimate']);
 
-app.constant('winsFor', {                                             // For global accessibility and to signify these
+app.constant('WINS_FOR', {                                             // For global accessibility and to signify these
   X: [7, 56, 73, 84, 146, 273, 292, 448],                             // values should remain constant, in Angular this
   O: [3584, 28672, 37376, 43008,                                      // service will keep the object constant, but the
       74752, 139776, 149504, 229376] }                                // members of the object are mutable
 )
 
-app.constant('boardSize', 9);                                         // Board size, global constant
+app.constant('BOARD_SIZE', 9);                                         // Board size, global constant
 
 app.factory('boardFty', function(){
   var boardFty = {};
@@ -26,7 +30,11 @@ app.factory('boardFty', function(){
   return boardFty;
 });
 
-app.service('AIPlayerService', function(){
+app.service('gameLogicSvc', ['', function(){
+
+}])
+
+app.service('AIPlayerSvc', function(){
   this.getMinimaxMove = function(board){
     for (var i=0; i < board.asArray.length; i++){
       for (var j=0; j < board.asArray[i].length; j++){
@@ -38,9 +46,9 @@ app.service('AIPlayerService', function(){
   };
 });
 
-app.controller('BoardController', ['$scope','$timeout',
-  'AIPlayerService','winsFor','boardSize','boardFty',
-  function($scope, $timeout, AIPlayerService, winsFor, boardSize,
+app.controller('GameCtrl', ['$scope','$timeout',
+  'AIPlayerSvc','WINS_FOR','BOARD_SIZE','boardFty',
+  function($scope, $timeout, AIPlayerSvc, WINS_FOR, BOARD_SIZE,
   boardFty){
 // responsible for DOM interactions
     this.newGame = function(){
@@ -60,7 +68,7 @@ app.controller('BoardController', ['$scope','$timeout',
     };
 //game logic move to service
     this.gameWon = function(turn, boardIn){                           // Search board for win values
-        for (var winValue of winsFor[turn]){                          // Choose array for X or O (cut iterations in 1/2)
+        for (var winValue of WINS_FOR[turn]){                          // Choose array for X or O (cut iterations in 1/2)
           if ((winValue | boardIn) === boardIn){                      // Check if x win values are on the board with
             return true;                                              // binary or and return true if value found
           }
@@ -69,7 +77,7 @@ app.controller('BoardController', ['$scope','$timeout',
     };
 //game logic move to service
     this.gameDraw = function(boardIn){
-      for (var i=0; i < boardSize; i++){
+      for (var i=0; i < BOARD_SIZE; i++){
         if (this.open(this.cellAt(i, boardIn))){
           return false;
         };
@@ -104,7 +112,7 @@ app.controller('BoardController', ['$scope','$timeout',
         this.board.asInteger += Math.pow(2,index);
         if (!this.gameOver("X")){
           //aiMakeMove
-          var AImove = AIPlayerService.getMinimaxMove(this.board);
+          var AImove = AIPlayerSvc.getMinimaxMove(this.board);
           this.board.asArray[AImove.row][AImove.column].mark = "O";
           this.board.asInteger += 512*Math.pow(2,(AImove.row*3 + AImove.column));
           var Owon = this.gameOver("O");
