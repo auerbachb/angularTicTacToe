@@ -30,9 +30,13 @@ app.factory('boardFty', function(){
   return boardFty;
 });
 
-app.service('gameLogicSvc', ['', function(){
-
-}])
+app.service('gameLogicSvc', function(){
+  this.cellAt = function(index, boardIn){
+      row = (Math.floor(index/3));
+      column = index%3;
+      return boardIn.asArray[row][column];
+    };
+});
 
 app.service('AIPlayerSvc', function(){
   this.getMinimaxMove = function(board){
@@ -47,8 +51,8 @@ app.service('AIPlayerSvc', function(){
 });
 
 app.controller('GameCtrl', ['$scope','$timeout',
-  'AIPlayerSvc','WINS_FOR','BOARD_SIZE','boardFty',
-  function($scope, $timeout, AIPlayerSvc, WINS_FOR, BOARD_SIZE,
+  'AIPlayerSvc', 'gameLogicSvc','WINS_FOR','BOARD_SIZE','boardFty',
+  function($scope, $timeout, AIPlayerSvc, gameLogicSvc, WINS_FOR, BOARD_SIZE,
   boardFty){
 // responsible for DOM interactions
     this.newGame = function(){
@@ -106,7 +110,7 @@ app.controller('GameCtrl', ['$scope','$timeout',
     };
 // responsible for DOM interactions, but mixed with game logic
     this.makeMove = function(index){
-      moveCell = this.cellAt(index);
+      moveCell = gameLogicSvc.cellAt(index, this.board);
       if (this.open(moveCell) && !Owon){
         moveCell.mark = "X";
         this.board.asInteger += Math.pow(2,index);
