@@ -17,7 +17,7 @@
       </div>
     </div>
       <table>
-        <tr ng-repeat="row in BoardCtrl.board.arrayBoard">
+        <tr ng-repeat="row in BoardCtrl.board.asArray">
           <td ng-repeat="cell in row" ng-click="BoardCtrl.makeMove(cell.idx)">
             {{cell.mark}}
           </td>

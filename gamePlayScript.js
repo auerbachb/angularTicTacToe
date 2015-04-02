@@ -3,14 +3,28 @@
                                                                       // matters less)
 var app = angular.module('ticTacToe', ['ngAnimate']);
 
-app.constant('winsFor', {
-                         X: [7, 56, 73, 84, 146, 273, 292, 448],
-                         O: [3584, 28672, 37376, 43008,
-                             74752, 139776, 149504, 229376]
-                        }
+app.constant('winsFor', {                                             // For global accessibility and to signify these
+  X: [7, 56, 73, 84, 146, 273, 292, 448],                             // values should remain constant, in Angular this
+  O: [3584, 28672, 37376, 43008,                                      // service will keep the object constant, but the
+      74752, 139776, 149504, 229376] }                                // members of the object are mutable
 )
 
-app.constant('boardSize', 9);
+app.constant('boardSize', 9);                                         // Board size, global constant
+
+app.factory('boardFty', function(){
+  var boardFty = {};
+  boardFty.getNew = function(){
+    return {
+      asInteger: 0,
+      asArray: [
+      [{idx: 0, mark: ""},{idx: 1, mark: ""},{idx: 2, mark: ""}],
+      [{idx: 3, mark: ""},{idx: 4, mark: ""},{idx: 5, mark: ""}],
+      [{idx: 6, mark: ""},{idx: 7, mark: ""},{idx: 8, mark: ""}]
+      ]
+    };
+  };
+  return boardFty;
+});
 
 app.service('AIPlayerService', function(){
   this.getMinimaxMove = function(board){
@@ -24,18 +38,13 @@ app.service('AIPlayerService', function(){
   };
 });
 
-app.controller('BoardController', ['$scope', '$timeout', 'AIPlayerService', 'winsFor', 'boardSize',
-  function($scope, $timeout, AIPlayerService, winsFor, boardSize){
+app.controller('BoardController', ['$scope','$timeout',
+  'AIPlayerService','winsFor','boardSize','boardFty',
+  function($scope, $timeout, AIPlayerService, winsFor, boardSize,
+  boardFty){
 // responsible for DOM interactions
     this.newGame = function(){
-      this.board = {
-        asInteger: 0,
-        asArray: [
-        [{idx: 0, mark: ""},{idx: 1, mark: ""},{idx: 2, mark: ""}],
-        [{idx: 3, mark: ""},{idx: 4, mark: ""},{idx: 5, mark: ""}],
-        [{idx: 6, mark: ""},{idx: 7, mark: ""},{idx: 8, mark: ""}]
-        ]
-      };
+      this.board = boardFty.getNew();
       $scope.showMessage = false;                                     // Remove gameOverMessage faster if button clicked
     };
 //game logic move to service
