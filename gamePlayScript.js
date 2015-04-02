@@ -36,6 +36,10 @@ app.service('gameLogicSvc', function(){
       column = index%3;
       return boardIn.asArray[row][column];
     };
+
+  this.open = function(cell){
+    return (cell.mark === "");
+  };
 });
 
 app.service('AIPlayerSvc', function(){
@@ -66,10 +70,7 @@ app.controller('GameCtrl', ['$scope','$timeout',
       column = index%3;
       return board[row][column];
     };
-//game logic move to service
-    this.open = function(cell){
-      return (cell.mark === "");
-    };
+
 //game logic move to service
     this.gameWon = function(turn, boardIn){                           // Search board for win values
         for (var winValue of WINS_FOR[turn]){                          // Choose array for X or O (cut iterations in 1/2)
@@ -82,7 +83,7 @@ app.controller('GameCtrl', ['$scope','$timeout',
 //game logic move to service
     this.gameDraw = function(boardIn){
       for (var i=0; i < BOARD_SIZE; i++){
-        if (this.open(this.cellAt(i, boardIn))){
+        if (gameLogicSvc.open(this.cellAt(i, boardIn))){
           return false;
         };
       }
@@ -111,7 +112,7 @@ app.controller('GameCtrl', ['$scope','$timeout',
 // responsible for DOM interactions, but mixed with game logic
     this.makeMove = function(index){
       moveCell = gameLogicSvc.cellAt(index, this.board);
-      if (this.open(moveCell) && !Owon){
+      if (gameLogicSvc.open(moveCell) && !Owon){
         moveCell.mark = "X";
         this.board.asInteger += Math.pow(2,index);
         if (!this.gameOver("X")){
