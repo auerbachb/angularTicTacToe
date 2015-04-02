@@ -37,33 +37,34 @@
       };
 
       this.newGame = function(){
-        this.gameOverVal = false;
+        this.gameOverVal = false; //<==GET RID OF GAMEOVERVAL FROM EVERYWHERE AND JUST CALL THE BOOL RETURNING FUNCTION (NEED TO REWRITE FUNCTION AS BOOL RETURNING AND MOVE MESSAGING OUT)
         this.board = this.newBoard();
         $scope.showMessage = false;                                   // Remove gameOverMessage faster if button clicked
       };
 
-      this.cellAt = function(index){
+      this.cellAt = function(index, boardIn){
+        var board = boardIn ? boardIn : this.board.arrayBoard;
         row = (Math.floor(index/3));
         column = index%3;
-        return this.board.arrayBoard[row][column];
+        return board[row][column];
       };
 
       this.open = function(cell){
         return (cell.mark === "");
       };
 
-      this.gameWon = function(turn, intBoard){                        // Search board for win values
+      this.gameWon = function(turn, boardIn){                         // Search board for win values
           for (var winValue of winsFor[turn]){                        // Choose array for X or O (cut iterations in 1/2)
-            if ((winValue | intBoard) === intBoard){                  // Check if x win values are on the board with
+            if ((winValue | boardIn) === boardIn){                    // Check if x win values are on the board with
               return true;                                            // binary or and return true if value found
             }
           }
         return false;                                                 // If binary or doesn't change intBoard no one won
       };
 
-      this.gameDraw = function(){
+      this.gameDraw = function(boardIn){
         for (var i=0; i < boardSize; i++){
-          if (this.open(this.cellAt(i))){
+          if (this.open(this.cellAt(i, boardIn))){
             return false;
           };
         }
@@ -78,24 +79,25 @@
         }, 2000);
       };
 
-      this.gameOver = function(turn, board){
+      this.gameOver = function(turn, boardIn){
+        var board = boardIn ? boardIn : this.board;
         if (this.gameWon(turn, board.integerBoard)){
           this.showGameOverMessage(turn + " HAS WON");
           return true;
-        } else if (this.gameDraw()){
+        } else if (this.gameDraw(board.arrayBoard)){
           this.showGameOverMessage("IT'S A DRAW");
           return true;
         }
         return false;
       };
-
+//update the calls to gameover to not pass a board
       this.makeMove = function(index){
         moveCell = this.cellAt(index);
         if (this.open(moveCell) && !this.gameOverVal){ //O went last so test if O won
           moveCell.mark = "X";
           this.board.integerBoard += Math.pow(2,index);
           console.log('integer board value should show updated value: ', this.board.integerBoard);
-          this.gameOverVal = this.gameOver("X", this.board);
+          this.gameOverVal = this.gameOver("X");
           console.log('gameOverVal: ', this.gameOverVal)
           if (!this.gameOverVal){
             //aiMakeMove
@@ -103,7 +105,7 @@
             this.board.arrayBoard[this.openMove.row][this.openMove.column].mark = "O";
             this.board.integerBoard += 512*Math.pow(2,(this.openMove.row*3 + this.openMove.column));
             console.log('integer board value should show updated value: ', this.board.integerBoard);
-            this.gameOverVal = this.gameOver("O", this.board);
+            this.gameOverVal = this.gameOver("O");
           };
         };
       }
