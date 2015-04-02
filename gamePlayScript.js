@@ -25,8 +25,8 @@
   app.controller('BoardController', ['$scope', '$timeout', 'AIPlayerService', 'winsFor', 'boardSize',
     function($scope, $timeout, AIPlayerService, winsFor, boardSize){
 
-      this.newBoard = function(){
-        return{
+      this.newGame = function(){
+        this.board = {
           integerBoard: 0,
           arrayBoard: [
           [{idx: 0, mark: ""},{idx: 1, mark: ""},{idx: 2, mark: ""}],
@@ -34,11 +34,6 @@
           [{idx: 6, mark: ""},{idx: 7, mark: ""},{idx: 8, mark: ""}]
           ]
         };
-      };
-
-      this.newGame = function(){
-        this.gameOverVal = false; //<==GET RID OF GAMEOVERVAL FROM EVERYWHERE AND JUST CALL THE BOOL RETURNING FUNCTION (NEED TO REWRITE FUNCTION AS BOOL RETURNING AND MOVE MESSAGING OUT)
-        this.board = this.newBoard();
         $scope.showMessage = false;                                   // Remove gameOverMessage faster if button clicked
       };
 
@@ -90,22 +85,18 @@
         }
         return false;
       };
-//update the calls to gameover to not pass a board
+
       this.makeMove = function(index){
         moveCell = this.cellAt(index);
-        if (this.open(moveCell) && !this.gameOverVal){ //O went last so test if O won
+        if (this.open(moveCell) && !Owon){
           moveCell.mark = "X";
           this.board.integerBoard += Math.pow(2,index);
-          console.log('integer board value should show updated value: ', this.board.integerBoard);
-          this.gameOverVal = this.gameOver("X");
-          console.log('gameOverVal: ', this.gameOverVal)
-          if (!this.gameOverVal){
+          if (!this.gameOver("X")){
             //aiMakeMove
-            this.openMove = AIPlayerService.getMinimaxMove(this.board);
-            this.board.arrayBoard[this.openMove.row][this.openMove.column].mark = "O";
-            this.board.integerBoard += 512*Math.pow(2,(this.openMove.row*3 + this.openMove.column));
-            console.log('integer board value should show updated value: ', this.board.integerBoard);
-            this.gameOverVal = this.gameOver("O");
+            var AImove = AIPlayerService.getMinimaxMove(this.board);
+            this.board.arrayBoard[AImove.row][AImove.column].mark = "O";
+            this.board.integerBoard += 512*Math.pow(2,(AImove.row*3 + AImove.column));
+            var Owon = this.gameOver("O");
           };
         };
       }
