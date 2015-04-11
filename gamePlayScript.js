@@ -89,7 +89,8 @@
         this.updateGameOverStatus("X", boardIn);
       }
       if (boardIn.inPlay) {
-        var AImove = AIPlayerSvc.getMinimaxMove(boardIn);
+        var AImove = AIPlayerSvc.getMinimaxMove(boardIn, "O");
+        console.log('getMinimaxMove called')
         boardIn.asArray[AImove.row][AImove.column].mark = "O";
         boardIn.asInteger += 512*Math.pow(2,(AImove.row*3 + AImove.column));
         this.updateGameOverStatus("O", boardIn);
@@ -98,17 +99,109 @@
   }]);
 
 // SERVICE CONTAINING AI LOGIC
-  app.service('AIPlayerSvc', function(){
-    this.getMinimaxMove = function(board){
-      for (var i=0; i < board.asArray.length; i++){
-        for (var j=0; j < board.asArray[i].length; j++){
-          if (board.asArray[i][j].mark === ""){
-            return {row: i, column: j};
+  app.service('AIPlayerSvc', ['WINS_FOR', 'BOARD_SIZE', function(WINS_FOR, BOARD_SIZE){
+
+    this.cellAt = function(index, boardIn){
+      var row = (Math.floor(index/3));
+      var column = index%3;
+      return boardIn[row][column];
+    };
+
+    this.open = function(cell){
+      return (cell.mark === "");
+    };
+
+    this.gameWon = function(turn, boardIn){                             // Search board for win values
+      var winsToCheck = WINS_FOR[turn];
+      for (var i = 0; i < winsToCheck.length; i++){                           // Choose array for X or O (cut iterations in 1/2)
+        if (boardIn === (winsToCheck[i] | boardIn)) {                        // Check if x win values are on the board with
+          return true;                                                // binary or and return true if value found
+        }
+      }
+      return false;                                                     // If binary or doesn't change intBoard no one won
+    };
+
+    this.gameDraw = function(boardIn){
+      for (var i=0; i < BOARD_SIZE; i++){
+        if (this.open(this.cellAt(i, boardIn))){
+          return false;
+        }
+      }
+      return true;
+    };
+
+    this.getMinimaxMove = function(boardIn, activePlayer){
+      // var board = this.simpleArray(boardIn);
+      // console.log("boardIn is", boardIn);
+      if(this.gameWon("X", boardIn.asInteger)){
+        return { score:  100,
+                   row:   -1,
+                column:   -1,
+                 alpha:  100,
+                  beta:  100
+                };
+      } else if (this.gameWon("O", boardIn.asInteger)){
+        return { score: -100,
+                   row:   -1,
+                column:   -1,
+                 alpha: -100,
+                  beta: -100
+                };
+      } else if (this.gameDraw(boardIn.asArray)){
+        return { score:    0,
+                   row:   -1,
+                column:   -1,
+                 alpha:    0,
+                  beta:    0
+                };
+      }
+      // Object to hold the last evaluated move for either x or o, since this value is only needed for the comparison
+      // to the next turn turn, a single object can be used and updated for X or O depending on who is playing,
+      // thus it will either hold the minimum or maximum evaluated value for that move once it hits a leaf node
+      // depending on whose turn it is on the leaf node
+      var lastMove = { score: 1000,
+                         row:   -1,
+                      column:   -1,
+                       alpha: -100,
+                        beta:  100
+                      };
+      //for every board position
+      for (var i=0; i < boardIn.asArray.length; i++){
+        for (var j=0; j < boardIn.asArray[i].length; j++){
+          if (boardIn.asArray[i][j].mark === ""){
+            var newBoard = angular.copy(boardIn);
+            console.log("newBoard on this ", i, ",", j, " iteration is:");
+            console.log(newBoard.asArray[0][0].mark, "|", newBoard.asArray[0][1].mark, "|", newBoard.asArray[0][2].mark);
+            console.log(newBoard.asArray[1][0].mark, "|", newBoard.asArray[1][1].mark, "|", newBoard.asArray[1][2].mark);
+            console.log(newBoard.asArray[2][0].mark, "|", newBoard.asArray[2][1].mark, "|", newBoard.asArray[2][2].mark);
+            console.log("lastMove score is ", lastMove.score)
+            //copy the board, place the mark and call minimax on it
+            if (activePlayer === "X") {
+              newBoard.asArray[i][j].mark = "X";
+              newBoard.asInteger += Math.pow(2,((3*i)+j));
+            } else {
+              newBoard.asArray[i][j].mark = "O";
+              newBoard.asInteger += 512*Math.pow(2,((3*i)+j));
+            }
+            activePlayer = (activePlayer === "O") ? "X" : "O";
+            console.log("activePlayer going next time is ", activePlayer);
+            var nextMove = this.getMinimaxMove(newBoard, activePlayer);
+            if (lastMove.score === 1000 || activePlayer === "X" && lastMove.score < nextMove.score || activePlayer === "O" && lastMove.score > nextMove.score) {
+              lastMove.score = nextMove.score;
+              lastMove.row = i;
+              lastMove.column = j;
+            }
           }
         }
       }
+      // var bestPosition = {};
+      // bestPosition.row = lastMove.row;
+      // bestPosition.column = lastMove.column;
+      console.log(lastMove);
+      console.log(newBoard);
+      return lastMove;
     }
-  });
+  }]);
 
 // CONTROLLER
   app.controller('GameCtrl', ['$scope','$timeout',
