@@ -28,12 +28,31 @@
     boardFty.getNew = function(){
       return {
         inPlay: true,
+        // asInteger: 10762,
+        // asArray: [
+        //   [{idx: 0, mark: "O"},{idx: 1, mark: "X"},{idx: 2, mark: "O"}],
+        //   [{idx: 3, mark: "X"},{idx: 4, mark: "O"},{idx: 5, mark: ""}],
+        //   [{idx: 6, mark: ""},{idx: 7, mark: ""},{idx: 8, mark: ""}]
+        // ]
+        // asInteger: 2570,
+        // asArray: [
+        //   [{idx: 0, mark: "O"},{idx: 1, mark: "X"},{idx: 2, mark: "O"}],
+        //   [{idx: 3, mark: "X"},{idx: 4, mark: ""},{idx: 5, mark: ""}],
+        //   [{idx: 6, mark: ""},{idx: 7, mark: ""},{idx: 8, mark: ""}]
+        // ]
         asInteger: 0,
         asArray: [
           [{idx: 0, mark: ""},{idx: 1, mark: ""},{idx: 2, mark: ""}],
           [{idx: 3, mark: ""},{idx: 4, mark: ""},{idx: 5, mark: ""}],
           [{idx: 6, mark: ""},{idx: 7, mark: ""},{idx: 8, mark: ""}]
         ]
+        // asInteger: 2562,
+        // asArray: [
+        //   [{idx: 0, mark: "O"},{idx: 1, mark: "X"},{idx: 2, mark: "O"}],
+        //   [{idx: 3, mark: ""},{idx: 4, mark: ""},{idx: 5, mark: ""}],
+        //   [{idx: 6, mark: ""},{idx: 7, mark: ""},{idx: 8, mark: ""}]
+        // ]
+
       };
     };
     return boardFty;
@@ -89,8 +108,8 @@
         this.updateGameOverStatus("X", boardIn);
       }
       if (boardIn.inPlay) {
-        var AImove = AIPlayerSvc.getMinimaxMove(boardIn, "O");
-        console.log('getMinimaxMove called')
+        var AImove = AIPlayerSvc.getMinimaxMove(boardIn, "O", 0);
+        // console.log('getMinimaxMove called')
         boardIn.asArray[AImove.row][AImove.column].mark = "O";
         boardIn.asInteger += 512*Math.pow(2,(AImove.row*3 + AImove.column));
         this.updateGameOverStatus("O", boardIn);
@@ -133,7 +152,9 @@
     this.getMinimaxMove = function(boardIn, activePlayer){
       // var board = this.simpleArray(boardIn);
       // console.log("boardIn is", boardIn);
+      //var activePlayer = _activePlayer;
       if(this.gameWon("X", boardIn.asInteger)){
+        console.log("this was a win for x<<<<<<<<<<<<<");
         return { score:  100,
                    row:   -1,
                 column:   -1,
@@ -141,6 +162,7 @@
                   beta:  100
                 };
       } else if (this.gameWon("O", boardIn.asInteger)){
+          console.log("this was a win for O<<<<<<<<<<<<<");
         return { score: -100,
                    row:   -1,
                 column:   -1,
@@ -148,6 +170,7 @@
                   beta: -100
                 };
       } else if (this.gameDraw(boardIn.asArray)){
+          console.log("this was a draw<<<<<<<<<<<<<");
         return { score:    0,
                    row:   -1,
                 column:   -1,
@@ -159,22 +182,29 @@
       // to the next turn turn, a single object can be used and updated for X or O depending on who is playing,
       // thus it will either hold the minimum or maximum evaluated value for that move once it hits a leaf node
       // depending on whose turn it is on the leaf node
-      var lastMove = { score: 1000,
-                         row:   -1,
-                      column:   -1,
-                       alpha: -100,
-                        beta:  100
-                      };
+      // var bestMoveFoundSoFar = (lastBestMoveFound) ? angular.copy(lastBestMoveFound) : { score: 1000,
+      //                                                                                      row:   -1,
+      //                                                                                   column:   -1,
+      //                                                                                    alpha: -100,
+      //                                                                                     beta:  100
+      //                                                                                   };
+      var bestMoveFoundSoFar = { score: 1000,
+                                   row:   -1,
+                                column:   -1,
+                                 alpha: -100,
+                                  beta:  100
+                                            };
+
       //for every board position
       for (var i=0; i < boardIn.asArray.length; i++){
         for (var j=0; j < boardIn.asArray[i].length; j++){
           if (boardIn.asArray[i][j].mark === ""){
             var newBoard = angular.copy(boardIn);
-            console.log("newBoard on this ", i, ",", j, " iteration is:");
-            console.log(newBoard.asArray[0][0].mark, "|", newBoard.asArray[0][1].mark, "|", newBoard.asArray[0][2].mark);
-            console.log(newBoard.asArray[1][0].mark, "|", newBoard.asArray[1][1].mark, "|", newBoard.asArray[1][2].mark);
-            console.log(newBoard.asArray[2][0].mark, "|", newBoard.asArray[2][1].mark, "|", newBoard.asArray[2][2].mark);
-            console.log("lastMove score is ", lastMove.score)
+            // console.log("newBoard on this ", i, ",", j, " iteration is:", "active player is ", activePlayer);
+            // console.log(newBoard.asArray[0][0].mark, "|", newBoard.asArray[0][1].mark, "|", newBoard.asArray[0][2].mark);
+            // console.log(newBoard.asArray[1][0].mark, "|", newBoard.asArray[1][1].mark, "|", newBoard.asArray[1][2].mark);
+            // console.log(newBoard.asArray[2][0].mark, "|", newBoard.asArray[2][1].mark, "|", newBoard.asArray[2][2].mark);
+            // console.log("bestMoveFoundSoFar score is ", bestMoveFoundSoFar.score)
             //copy the board, place the mark and call minimax on it
             if (activePlayer === "X") {
               newBoard.asArray[i][j].mark = "X";
@@ -183,24 +213,36 @@
               newBoard.asArray[i][j].mark = "O";
               newBoard.asInteger += 512*Math.pow(2,((3*i)+j));
             }
-            activePlayer = (activePlayer === "O") ? "X" : "O";
-            console.log("activePlayer going next time is ", activePlayer);
-            var nextMove = this.getMinimaxMove(newBoard, activePlayer);
-            if (lastMove.score === 1000 || activePlayer === "X" && lastMove.score < nextMove.score || activePlayer === "O" && lastMove.score > nextMove.score) {
-              lastMove.score = nextMove.score;
-              lastMove.row = i;
-              lastMove.column = j;
+            var nextPlayer = (activePlayer === "O") ? "X" : "O";
+            // console.log("activePlayer going next time is ", activePlayer);
+            var nextMove = this.getMinimaxMove(newBoard, nextPlayer);
+            if (isMoveGoodFor(activePlayer, bestMoveFoundSoFar, nextMove)) {
+              bestMoveFoundSoFar.score = nextMove.score;
+              bestMoveFoundSoFar.row = i;
+              bestMoveFoundSoFar.column = j;
             }
           }
         }
       }
       // var bestPosition = {};
-      // bestPosition.row = lastMove.row;
-      // bestPosition.column = lastMove.column;
-      console.log(lastMove);
-      console.log(newBoard);
-      return lastMove;
+      // bestPosition.row = bestMoveFoundSoFar.row;
+      // bestPosition.column = bestMoveFoundSoFar.column;
+      // console.log("################level of recursion is: " + ct);
+      // console.log(bestMoveFoundSoFar);
+      // console.log(newBoard);
+        return bestMoveFoundSoFar; //<<---
     }
+
+  var isMoveGoodFor = function(player, bestMoveFoundSoFar, nextMoveToCompare){
+    if (bestMoveFoundSoFar.score === 1000){ // refactor this later
+      return true;
+    }
+    if (player === "X"){
+      return bestMoveFoundSoFar.score < nextMoveToCompare.score;
+    }
+    return bestMoveFoundSoFar.score > nextMoveToCompare.score;
+  };
+
   }]);
 
 // CONTROLLER
