@@ -1,3 +1,10 @@
+// add alpha beta pruning
+//ultimately separate files as per https://github.com/angular/angular-phonecat
+//maybe move game stuff from index into a view and use view directive plus route to insert it
+//this way you can add a link to about to show you know how to use routers in angular, use the ui_router
+//use webstorm or jslint or the like to proof the syntax
+// http://www.codecademy.com/blog/78-your-guide-to-semicolons-in-javascript
+
 (function(){
 
   var app = angular.module('ticTacToe', ['ngAnimate']);
@@ -61,7 +68,7 @@
       return boardIn[row][column];
     };
 
-    this.open = function(cell){
+    this.openCellAt = function(cell){
       return (cell.mark === "");
     };
 
@@ -77,7 +84,7 @@
 
     this.gameDraw = function(boardIn){
       for (var i=0; i < BOARD_SIZE; i++){
-        if (this.open(this.cellAt(i, boardIn))){
+        if (this.openCellAt(this.cellAt(i, boardIn))){
           return false;
         }
       }
@@ -90,26 +97,25 @@
               function(AISvc, boardSvc){
 
     this.updateGameOverStatus = function(turn, boardIn){
-      var board = boardIn ? boardIn : this.board;
-      if (boardSvc.gameWon(turn, board.asInteger)){
+      if (boardSvc.gameWon(turn, boardIn.asInteger)){
         this.gameOverMessage = turn + " HAS WON";
-        board.inPlay = false;
-      } else if (boardSvc.gameDraw(board.asArray)){
+        boardIn.inPlay = false;
+      } else if (boardSvc.gameDraw(boardIn.asArray)){
         this.gameOverMessage = "IT'S A DRAW";
-        board.inPlay = false;
+        boardIn.inPlay = false;
       }
     };
 
-    this.boardUpdate = function(boardIn, moveIn){
-      var moveCell = boardSvc.cellAt(moveIn, boardIn.asArray);
-      if (boardSvc.open(moveCell) && boardIn.inPlay) {
-        moveCell.mark = "X";
-        boardIn.asInteger += Math.pow(2,moveIn);
+    this.addHumanMoveThenGetAiMove = function(boardIn, moveIn){
+      var cellToMark = boardSvc.cellAt(moveIn, boardIn.asArray);
+      if (boardSvc.openCellAt(cellToMark) && boardIn.inPlay) {
+        cellToMark.mark = "X";                                        //use symbol HUMAN
+        boardIn.asInteger += Math.pow(2,moveIn);                      //use symbol and call addMoveAsPowerOf2 for HUMAN
         this.updateGameOverStatus("X", boardIn);
         if (boardIn.inPlay) {
           var AImove = AISvc.getMinimaxMove(boardIn, "O", 0);
           boardIn.asArray[AImove.row][AImove.column].mark = "O";
-          boardIn.asInteger += 512*Math.pow(2,(AImove.row*3 + AImove.column));
+          boardIn.asInteger += 512*Math.pow(2,(AImove.row*3 + AImove.column)); //use symbol and call addMoveAsPowerOf2 for COMPUTER
           this.updateGameOverStatus("O", boardIn);
         };
       };
@@ -178,23 +184,45 @@
         return bestMoveFoundSoFar;
     }
 
-  var isMoveGoodFor = function(player, bestMoveFoundSoFar, nextMoveToCompare){
-    if (bestMoveFoundSoFar.score === 1000){
-      return true;
-    }
-    if (player === "X"){
-      return bestMoveFoundSoFar.score < nextMoveToCompare.score;
-    }
-    return bestMoveFoundSoFar.score > nextMoveToCompare.score;
-  };
+    var isMoveGoodFor = function(player, bestMoveFoundSoFar, nextMoveToCompare){
+      if (bestMoveFoundSoFar.score === 1000){
+        return true;
+      }
+      if (player === "X"){
+        return bestMoveFoundSoFar.score < nextMoveToCompare.score;
+      }
+      return bestMoveFoundSoFar.score > nextMoveToCompare.score;
+    };
 
   }]);
 
+/*
+app.directive('notification', function($timeout){
+  return {
+    restrict: 'E',
+    replace: true,
+    scope: {
+      ngModel: '='
+    },
+    template: '<div class="alert fade" bs-alert="ngModel"></div>',
+    link: function(scope, element, attrs) {
+      $timeout(function(){
+        element.hide();
+      }, 3000);
+    }
+  }
+});
 
-  app.service('messageSvc', ['$scope', function($scope){
+app.controller('AlertController', function($scope){
+    $scope.message = {
+      "type": "info",
+      "title": "Success!",
+      "content": "alert directive is working pretty well with 3 sec timeout"
+    };
+});
 
-  }])
-
+<notification ng-model="message"></notification>
+*/
 
   app.controller('GameCtrl', ['$scope','$timeout',
     'AISvc', 'gameSvc','boardFty',
@@ -207,10 +235,14 @@
         $scope.showMessage = false;
       };
 
+      this.getMoveFromClick = function(index){
+        gameSvc.addHumanMoveThenGetAiMove(this.board, index);
+        this.showMessageIfgameEnded();
+      };
 
-      this.showMessageIfgameEnded = function(messageIn){
-        if (!this.board.inPlay){
-          this.gameOverMessage = messageIn;
+      this.showMessageIfgameEnded = function(){                       // HOW TO PULL OUT INTO A DIRECTIVE OR STH, POSSIBILITY ABOVE
+        if (!this.board.inPlay){ // needs be passed
+          this.gameOverMessage = gameSvc.gameOverMessage;
           $scope.showMessage = true;
           $timeout(function(){
             $scope.showMessage = false;
@@ -218,16 +250,11 @@
         }
       };
 
-      this.makeMove = function(index){
-        gameSvc.boardUpdate(this.board, index);
-          this.showMessageIfgameEnded(gameSvc.gameOverMessage);
-      };
-
-      this.init = function(){
+      this.initializeNewGameOnLoad = function(){
         return this.newGame();
       };
 
-      this.init();
+      this.initializeNewGameOnLoad();
 
     }
   ]);
