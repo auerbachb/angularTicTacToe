@@ -1,65 +1,60 @@
-//ultimately separate files as per https://github.com/angular/angular-phonecat
-//maybe move game stuff from index into a view and use view directive plus route to insert it
-//this way you can add a link to about to show you know how to use routers in angular, use the ui_router
-//use webstorm or jslint or the like to proof the syntax
-// http://www.codecademy.com/blog/78-your-guide-to-semicolons-in-javascript
+(function(){
 
-
-(function(){                                                          // Anonymous function wrapper for scope control
-  // and to maintain privacy of code (if minified,
-  // matters less)
-// MODULE: the scripts for this app are contained in a single module
   var app = angular.module('ticTacToe', ['ngAnimate']);
 
-// GLOBAL CONSTANTS
-  app.constant('WINS_FOR', {                                            // For global accessibility and to signify these
-        X: [7, 56, 73, 84, 146, 273, 292, 448],                             // values should remain constant, in Angular this
-        O: [3584, 28672, 37376, 43008,                                      // service will keep the object constant, but the
-          74752, 139776, 149504, 229376] }                                // members of the object are mutable
-  );
+  /******************************************************************
+  ************************* NAMED CONSTANTS *************************
+  *******************************************************************/
+  app.constant('WINS_FOR', {                                          // Array of wins for the binary board
+        X: [           //         273                84               // representation, (see header for details)
+                 7,    //           \               /
+                56,    //             1 |   2 |   4  == 7
+                73,    //          -----+-----+-----
+                84,    //             8 |  16 |  32  == 56
+               146,    //          -----+-----+-----
+               273,    //            64 | 128 | 256  == 448
+               292,    //          =================
+               448     //            73   146   292
+           ],
+        O: [           //    273*2^9                 84*2^9
+              3584,    //           \               /
+             28672,    //           2^9 | 2^10| 2^11 ==  7*2^9
+             37376,    //          -----+-----+-----
+             43008,    //           2^12| 2^13| 2^14 == 56*2^9
+             74752,    //          -----+-----+-----
+            139776,    //           2^15| 2^16| 2^17 == 448*2^9
+            149504,    //          =================
+            229376     //        73*2^9 146*2^9 292*2^9
+           ]
+  });
 
-  app.constant('BOARD_SIZE', 9);                                        // Board size, global constant
-  app.constant('COMPUTER', 'O');                                        // Board size, global constant
-  app.constant('HUMAN', 'X');                                           // Board size, global constant
+  app.constant('BOARD_SIZE', 9);                                      // Can't adjust board (just named for readability)
+  app.constant('COMPUTER', 'O');                                      // In this simple implementation human and
+  app.constant('HUMAN',    'X');                                      // computer players are always the same char's
 
-// FACTORIES
-  app.factory('boardFty', function(){
+
+  /******************************************************************
+  ********************* FACTORIES AND SERVICES **********************
+  *******************************************************************/
+
+  app.factory('boardFty', function(){                                 // Returns a blank board for each new game
     var boardFty = {};
-    boardFty.getNew = function(){
-      return {
-        inPlay: true,
-        // asInteger: 10762,
-        // asArray: [
-        //   [{idx: 0, mark: "O"},{idx: 1, mark: "X"},{idx: 2, mark: "O"}],
-        //   [{idx: 3, mark: "X"},{idx: 4, mark: "O"},{idx: 5, mark: ""}],
-        //   [{idx: 6, mark: ""},{idx: 7, mark: ""},{idx: 8, mark: ""}]
-        // ]
-        // asInteger: 2570,
-        // asArray: [
-        //   [{idx: 0, mark: "O"},{idx: 1, mark: "X"},{idx: 2, mark: "O"}],
-        //   [{idx: 3, mark: "X"},{idx: 4, mark: ""},{idx: 5, mark: ""}],
-        //   [{idx: 6, mark: ""},{idx: 7, mark: ""},{idx: 8, mark: ""}]
-        // ]
-        asInteger: 0,
+    boardFty.getNew = function(){                                     // inPlay keeps game state. b/c board is passed
+      return {                                                        // as param -> simpler to let board to track state
+        inPlay: true,                                                 // affiliated with its configuration
+        asInteger: 0,                                                 // Binary board representation (see header)
         asArray: [
-          [{idx: 0, mark: ""},{idx: 1, mark: ""},{idx: 2, mark: ""}],
-          [{idx: 3, mark: ""},{idx: 4, mark: ""},{idx: 5, mark: ""}],
+          [{idx: 0, mark: ""},{idx: 1, mark: ""},{idx: 2, mark: ""}], // idx used for angular to label board on dom
+          [{idx: 3, mark: ""},{idx: 4, mark: ""},{idx: 5, mark: ""}], // to get click location
           [{idx: 6, mark: ""},{idx: 7, mark: ""},{idx: 8, mark: ""}]
         ]
-        // asInteger: 2562,
-        // asArray: [
-        //   [{idx: 0, mark: "O"},{idx: 1, mark: "X"},{idx: 2, mark: "O"}],
-        //   [{idx: 3, mark: ""},{idx: 4, mark: ""},{idx: 5, mark: ""}],
-        //   [{idx: 6, mark: ""},{idx: 7, mark: ""},{idx: 8, mark: ""}]
-        // ]
-
       };
     };
     return boardFty;
   });
 
-// SERVICE CONTAINING GAME LOGIC
-  app.service('gameLogicSvc',['WINS_FOR', 'BOARD_SIZE', 'AIPlayerSvc', function(WINS_FOR, BOARD_SIZE, AIPlayerSvc){
+
+  app.service('boardSvc', ['WINS_FOR', 'BOARD_SIZE', function(WINS_FOR, BOARD_SIZE){
     this.cellAt = function(index, boardIn){
       var row = (Math.floor(index/3));
       var column = index%3;
@@ -70,14 +65,14 @@
       return (cell.mark === "");
     };
 
-    this.gameWon = function(turn, boardIn){                             // Search board for win values
+    this.gameWon = function(turn, boardIn){
       var winsToCheck = WINS_FOR[turn];
-      for (var i = 0; i < winsToCheck.length; i++){                           // Choose array for X or O (cut iterations in 1/2)
-        if (boardIn === (winsToCheck[i] | boardIn)) {                        // Check if x win values are on the board with
-          return true;                                                // binary or and return true if value found
+      for (var i = 0; i < winsToCheck.length; i++){
+        if (boardIn === (winsToCheck[i] | boardIn)) {
+          return true;
         }
       }
-      return false;                                                     // If binary or doesn't change intBoard no one won
+      return false;
     };
 
     this.gameDraw = function(boardIn){
@@ -89,88 +84,59 @@
       return true;
     };
 
+  }])
+
+  app.service('gameSvc',['AISvc', 'boardSvc',
+              function(AISvc, boardSvc){
+
     this.updateGameOverStatus = function(turn, boardIn){
       var board = boardIn ? boardIn : this.board;
-      if (this.gameWon(turn, board.asInteger)){
+      if (boardSvc.gameWon(turn, board.asInteger)){
         this.gameOverMessage = turn + " HAS WON";
         board.inPlay = false;
-      } else if (this.gameDraw(board.asArray)){
+      } else if (boardSvc.gameDraw(board.asArray)){
         this.gameOverMessage = "IT'S A DRAW";
         board.inPlay = false;
       }
     };
 
     this.boardUpdate = function(boardIn, moveIn){
-      var moveCell = this.cellAt(moveIn, boardIn.asArray);
-      if (this.open(moveCell) && boardIn.inPlay) {
+      var moveCell = boardSvc.cellAt(moveIn, boardIn.asArray);
+      if (boardSvc.open(moveCell) && boardIn.inPlay) {
         moveCell.mark = "X";
         boardIn.asInteger += Math.pow(2,moveIn);
         this.updateGameOverStatus("X", boardIn);
-      }
-      if (boardIn.inPlay) {
-        var AImove = AIPlayerSvc.getMinimaxMove(boardIn, "O", 0);
-        // console.log('getMinimaxMove called')
-        boardIn.asArray[AImove.row][AImove.column].mark = "O";
-        boardIn.asInteger += 512*Math.pow(2,(AImove.row*3 + AImove.column));
-        this.updateGameOverStatus("O", boardIn);
+        if (boardIn.inPlay) {
+          var AImove = AISvc.getMinimaxMove(boardIn, "O", 0);
+          boardIn.asArray[AImove.row][AImove.column].mark = "O";
+          boardIn.asInteger += 512*Math.pow(2,(AImove.row*3 + AImove.column));
+          this.updateGameOverStatus("O", boardIn);
+        };
       };
     }
   }]);
 
-// SERVICE CONTAINING AI LOGIC
-  app.service('AIPlayerSvc', ['WINS_FOR', 'BOARD_SIZE', function(WINS_FOR, BOARD_SIZE){
 
-    this.cellAt = function(index, boardIn){
-      var row = (Math.floor(index/3));
-      var column = index%3;
-      return boardIn[row][column];
-    };
-
-    this.open = function(cell){
-      return (cell.mark === "");
-    };
-
-    this.gameWon = function(turn, boardIn){                             // Search board for win values
-      var winsToCheck = WINS_FOR[turn];
-      for (var i = 0; i < winsToCheck.length; i++){                           // Choose array for X or O (cut iterations in 1/2)
-        if (boardIn === (winsToCheck[i] | boardIn)) {                        // Check if x win values are on the board with
-          return true;                                                // binary or and return true if value found
-        }
-      }
-      return false;                                                     // If binary or doesn't change intBoard no one won
-    };
-
-    this.gameDraw = function(boardIn){
-      for (var i=0; i < BOARD_SIZE; i++){
-        if (this.open(this.cellAt(i, boardIn))){
-          return false;
-        }
-      }
-      return true;
-    };
+  app.service('AISvc', ['boardSvc',
+              function(boardSvc){
 
     this.getMinimaxMove = function(boardIn, activePlayer){
-      // var board = this.simpleArray(boardIn);
-      // console.log("boardIn is", boardIn);
-      //var activePlayer = _activePlayer;
-      if(this.gameWon("X", boardIn.asInteger)){
-        console.log("this was a win for x<<<<<<<<<<<<<");
+
+      if(boardSvc.gameWon("X", boardIn.asInteger)){
         return { score:  100,
                    row:   -1,
                 column:   -1,
                  alpha:  100,
                   beta:  100
                 };
-      } else if (this.gameWon("O", boardIn.asInteger)){
-          console.log("this was a win for O<<<<<<<<<<<<<");
+      } else if (boardSvc.gameWon("O", boardIn.asInteger)){
         return { score: -100,
                    row:   -1,
                 column:   -1,
                  alpha: -100,
                   beta: -100
                 };
-      } else if (this.gameDraw(boardIn.asArray)){
-          console.log("this was a draw<<<<<<<<<<<<<");
+      } else if (boardSvc.gameDraw(boardIn.asArray)){
         return { score:    0,
                    row:   -1,
                 column:   -1,
@@ -178,16 +144,7 @@
                   beta:    0
                 };
       }
-      // Object to hold the last evaluated move for either x or o, since this value is only needed for the comparison
-      // to the next turn turn, a single object can be used and updated for X or O depending on who is playing,
-      // thus it will either hold the minimum or maximum evaluated value for that move once it hits a leaf node
-      // depending on whose turn it is on the leaf node
-      // var bestMoveFoundSoFar = (lastBestMoveFound) ? angular.copy(lastBestMoveFound) : { score: 1000,
-      //                                                                                      row:   -1,
-      //                                                                                   column:   -1,
-      //                                                                                    alpha: -100,
-      //                                                                                     beta:  100
-      //                                                                                   };
+
       var bestMoveFoundSoFar = { score: 1000,
                                    row:   -1,
                                 column:   -1,
@@ -195,17 +152,11 @@
                                   beta:  100
                                             };
 
-      //for every board position
       for (var i=0; i < boardIn.asArray.length; i++){
         for (var j=0; j < boardIn.asArray[i].length; j++){
           if (boardIn.asArray[i][j].mark === ""){
             var newBoard = angular.copy(boardIn);
-            // console.log("newBoard on this ", i, ",", j, " iteration is:", "active player is ", activePlayer);
-            // console.log(newBoard.asArray[0][0].mark, "|", newBoard.asArray[0][1].mark, "|", newBoard.asArray[0][2].mark);
-            // console.log(newBoard.asArray[1][0].mark, "|", newBoard.asArray[1][1].mark, "|", newBoard.asArray[1][2].mark);
-            // console.log(newBoard.asArray[2][0].mark, "|", newBoard.asArray[2][1].mark, "|", newBoard.asArray[2][2].mark);
-            // console.log("bestMoveFoundSoFar score is ", bestMoveFoundSoFar.score)
-            //copy the board, place the mark and call minimax on it
+
             if (activePlayer === "X") {
               newBoard.asArray[i][j].mark = "X";
               newBoard.asInteger += Math.pow(2,((3*i)+j));
@@ -214,7 +165,6 @@
               newBoard.asInteger += 512*Math.pow(2,((3*i)+j));
             }
             var nextPlayer = (activePlayer === "O") ? "X" : "O";
-            // console.log("activePlayer going next time is ", activePlayer);
             var nextMove = this.getMinimaxMove(newBoard, nextPlayer);
             if (isMoveGoodFor(activePlayer, bestMoveFoundSoFar, nextMove)) {
               bestMoveFoundSoFar.score = nextMove.score;
@@ -224,17 +174,12 @@
           }
         }
       }
-      // var bestPosition = {};
-      // bestPosition.row = bestMoveFoundSoFar.row;
-      // bestPosition.column = bestMoveFoundSoFar.column;
-      // console.log("################level of recursion is: " + ct);
-      // console.log(bestMoveFoundSoFar);
-      // console.log(newBoard);
-        return bestMoveFoundSoFar; //<<---
+
+        return bestMoveFoundSoFar;
     }
 
   var isMoveGoodFor = function(player, bestMoveFoundSoFar, nextMoveToCompare){
-    if (bestMoveFoundSoFar.score === 1000){ // refactor this later
+    if (bestMoveFoundSoFar.score === 1000){
       return true;
     }
     if (player === "X"){
@@ -245,37 +190,39 @@
 
   }]);
 
-// CONTROLLER
+
+  app.service('messageSvc', ['$scope', function($scope){
+
+  }])
+
+
   app.controller('GameCtrl', ['$scope','$timeout',
-    'AIPlayerSvc', 'gameLogicSvc','boardFty',
-    function($scope, $timeout, AIPlayerSvc, gameLogicSvc,
+    'AISvc', 'gameSvc','boardFty',
+    function($scope, $timeout, AISvc, gameSvc,
              boardFty){
 
       this.newGame = function(){
         this.board = boardFty.getNew();
         this.gameOverMessage = null;
-        $scope.showMessage = false;                                     // Remove gameOverMessage faster if button clicked
+        $scope.showMessage = false;
       };
 
-// responsible for DOM interactions, but should be a messaging service since it's not a directive move into a service called messaging
+
       this.showMessageIfgameEnded = function(messageIn){
         if (!this.board.inPlay){
           this.gameOverMessage = messageIn;
           $scope.showMessage = true;
-          $timeout(function(){                                          // Delay hiding of message for fade in and fade out to run
+          $timeout(function(){
             $scope.showMessage = false;
           }, 2000);
         }
       };
 
       this.makeMove = function(index){
-        gameLogicSvc.boardUpdate(this.board, index);
-          this.showMessageIfgameEnded(gameLogicSvc.gameOverMessage);
+        gameSvc.boardUpdate(this.board, index);
+          this.showMessageIfgameEnded(gameSvc.gameOverMessage);
       };
 
-      // On load this calls the newGame method, because Angular Documentation advises against
-      // using ngInit to call a function on load to initialize values on scope
-      // Reference: https://docs.angularjs.org/api/ng/directive/ngInit
       this.init = function(){
         return this.newGame();
       };
