@@ -17,14 +17,21 @@
       </div>
     </div>
       <table>
-        <tr ng-repeat="row in game.board.asArray">
-          <td ng-repeat="cell in row" ng-click="game.getMoveFromClick(cell.idx)">
-            {{cell.mark}}
+        <tr ng-repeat="row in game.board.asArray"
+            ng-init="tableRow = $index">
+          <td ng-repeat="cell in row"
+              ng-click="game.getMoveFromClick(tableRow, tableCol)"
+              ng-init="tableCol = $index">
+                {{cell.mark}}
           </td>
         </tr>
       </table>
       <br>
-      <a ng-click="game.newGame()" class="top-margin btn btn-large btn-block h2" ng-class="{'btn-primary' : game.board.inPlay === false}">START NEW GAME</a>
+      <a ng-click="game.newGame()"
+         class="top-margin btn btn-large btn-block h2"
+         ng-class="{'btn-primary' : game.board.inPlay === false}">
+           START NEW GAME
+      </a>
     </div>
   </div>
   <!-- AngularJS Files -->

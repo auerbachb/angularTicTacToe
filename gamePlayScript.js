@@ -81,7 +81,7 @@
     ** converting the index 0-8 into it's row/column equivalent for
     ** the 2 dimensional board
     */
-    this.cellAt = function(index, boardIn){
+    this.cellAt = function(index, boardIn, tableRow, tableCol){ // REFACTOR using row and col
       var row = (Math.floor(index/3));
       var column = index%3;
       return boardIn[row][column];
@@ -148,7 +148,7 @@
     ** minimax function to get the AI player's move and updates the
     ** board with the AI player's move.
     */
-    this.addHumanMoveThenGetAiMove = function(boardIn, moveIn){
+    this.addHumanMoveThenGetAiMove = function(boardIn, moveIn, tableRow, tableCol){
       var cellToMark = boardSvc.cellAt(moveIn, boardIn.asArray);
       if (boardSvc.openCellAt(cellToMark) && boardIn.inPlay){
         cellToMark.mark = "X";                                        //use symbol HUMAN
@@ -308,8 +308,10 @@ app.controller('AlertController', function($scope){
         $scope.showMessage = false;
       };
 
-      this.getMoveFromClick = function(index){
-        gameSvc.addHumanMoveThenGetAiMove(this.board, index);
+      this.getMoveFromClick = function(tableRow, tableCol){
+        console.log(tableRow, tableCol);
+        var index = (tableRow*3 + tableCol);
+        gameSvc.addHumanMoveThenGetAiMove(this.board, index, tableRow, tableCol);
         this.showMessageIfgameEnded();
       };
 
