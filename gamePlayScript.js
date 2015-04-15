@@ -57,9 +57,9 @@
         inPlay: true,                                                 // affiliated with its configuration
         asInteger: 0,                                                 // Binary board representation (see header)
         asArray: [
-          [{idx: 0, mark: ""},{idx: 1, mark: ""},{idx: 2, mark: ""}], // idx used for angular to label board on dom
-          [{idx: 3, mark: ""},{idx: 4, mark: ""},{idx: 5, mark: ""}], // to get click location
-          [{idx: 6, mark: ""},{idx: 7, mark: ""},{idx: 8, mark: ""}]
+          [{mark: ""},{mark: ""},{mark: ""}],                         // idx used for angular to label board on dom
+          [{mark: ""},{mark: ""},{mark: ""}],                         // to get click location
+          [{mark: ""},{mark: ""},{mark: ""}]
         ]
       };
     };
@@ -148,7 +148,7 @@
     ** minimax function to get the AI player's move and updates the
     ** board with the AI player's move.
     */
-    this.addHumanMoveThenGetAiMove = function(boardIn, moveIn, tableRow, tableCol){
+    this.addHumanMoveThenGetAiMove = function(boardIn, moveIn, tableRow, tableCol){ //CHANGE PARAM NAMES TO GET RID OF IN
       var cellToMark = boardSvc.cellAt(moveIn, boardIn.asArray);
       if (boardSvc.openCellAt(cellToMark) && boardIn.inPlay){
         cellToMark.mark = "X";                                        //use symbol HUMAN
