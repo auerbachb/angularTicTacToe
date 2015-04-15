@@ -127,36 +127,15 @@
               function(boardSvc){
 
     this.getMinimaxMove = function(boardIn, activePlayer){
-
       if(boardSvc.gameWon("X", boardIn.asInteger)){
-        return { score:  100,
-                   row:   -1,
-                column:   -1,
-                 alpha:  100,
-                  beta:  100
-                };
+        return xWonScore();
       } else if (boardSvc.gameWon("O", boardIn.asInteger)){
-        return { score: -100,
-                   row:   -1,
-                column:   -1,
-                 alpha: -100,
-                  beta: -100
-                };
+        return oWonScore();
       } else if (boardSvc.gameDraw(boardIn.asArray)){
-        return { score:    0,
-                   row:   -1,
-                column:   -1,
-                 alpha:    0,
-                  beta:    0
-                };
+        return drawScore();
       }
 
-      var bestMoveFoundSoFar = { score: 1000,
-                                   row:   -1,
-                                column:   -1,
-                                 alpha: -100,
-                                  beta:  100
-                                            };
+      var bestMoveFoundSoFar = { score: 1000 };
 
       for (var i=0; i < boardIn.asArray.length; i++){
         for (var j=0; j < boardIn.asArray[i].length; j++){
@@ -182,6 +161,27 @@
       }
 
         return bestMoveFoundSoFar;
+    }
+
+    var xWonScore = function(){
+      return { score:  100,
+               alpha:  100,
+                beta:  100
+              };
+    }
+
+    var oWonScore = function(){
+      return { score: -100,
+               alpha: -100,
+               beta: -100
+              };
+    }
+
+    var drawScore = function(){
+      return { score:    0,
+               alpha:    0,
+                beta:    0
+              };
     }
 
     var isMoveGoodFor = function(player, bestMoveFoundSoFar, nextMoveToCompare){
