@@ -73,32 +73,34 @@
   ** Provides information about the board: whether the game has been
   ** won or ended in a draw, whether a cell is open, and what the
   ** relative cell is from the 1d to 2d array.
-  *****************************************************************/
+  ******************************************************************/
   app.service('boardSvc', ['WINS_FOR', 'BOARD_SIZE',
                function(WINS_FOR, BOARD_SIZE){
 
     /*
-    ** Returns the cell on the board object based on its index by
-    ** converting the index 0-8 into it's row/column equivalent for
-    ** the 2 dimensional board
+    ** Updates the passed board array and integer value with mark
+    ** and move integer value
     */
-    this.cellAt = function(board, row, col){
-      return board[row][col];
-    };
+    this.placeMove = function(board, player, row, col){
+      if (player === HUMAN){
+        board.asArray[row][col].mark = HUMAN;
+        board.asInteger += Math.pow(2,row*3 + col);
+      } else {
+        board.asArray[row][col].mark = COMPUTER;
+        board.asInteger += 512*Math.pow(2,row*3 + col);
+      }
+    }
 
     /*
-    ** Returns true if the cell is blank
+    ** Returns true if cell at row/column on passed board is empty
     */
-    this.cellIsOpen = function(cell){
-      return (cell.mark === "");
-    };
-
     this.cellisEmpty = function(board, row, col){
       return (board.asArray[row][col].mark === EMPTY);
     };
 
     /*
-    ** Checks if the current move making player has won the game
+    ** Returns true if one of the winning patters is found on
+    ** the board passed
     */
     this.gameWon = function(turn, board){
       var winsToCheck = WINS_FOR[turn];
@@ -111,13 +113,12 @@
     };
 
     /*
-    ** Checks if every cell on the board is occupied
+    ** Returns true if every cell on the board is occupied
     */
     this.gameDraw = function(board){
       for (var index = 0; index < BOARD_SIZE; index++){
         var row = (Math.floor(index/3));
         var col = index%3;
-        // if (this.cellIsOpen(this.cellAt(board, row, col))){
         if (this.cellisEmpty(board, row, col)){
           return false;
         }
@@ -131,7 +132,7 @@
   /************************* GAME SERVICE *************************
   ** Makes moves for the AI and human player, manages the message
   ** sent upon the game ending for the DOM.
-  */
+  *****************************************************************/
   app.service('gameSvc',['AISvc', 'boardSvc',
               function(AISvc, boardSvc){
 
@@ -149,33 +150,18 @@
       }
     };
 
-    var placeMove = function(board, player, row, col){
-      if (player === HUMAN){
-        board.asArray[row][col].mark = HUMAN;
-        board.asInteger += Math.pow(2,row*3 + col);
-      } else {
-        board.asArray[row][col].mark = COMPUTER;
-        board.asInteger += 512*Math.pow(2,row*3 + col);
-      }
-    }
-
     /*
     ** Updates the board with the human player's move then calls the
     ** minimax function to get the AI player's move and updates the
     ** board with the AI player's move.
     */
     this.makeHumanThenAIMove = function(board, row, col){
-      // var cellToMark = board.asArray[row][col];
       if (boardSvc.cellisEmpty(board, row, col) && board.inPlay){
-        placeMove(board, HUMAN, row, col);
-        // cellToMark.mark = HUMAN;
-        // board.asInteger += Math.pow(2,row*3 + col);
+        boardSvc.placeMove(board, HUMAN, row, col);
         this.updateGameOverStatus(HUMAN, board);
         if (board.inPlay){
           var AImove = AISvc.getMinimaxMove(board, COMPUTER, 0);
-          placeMove(board, COMPUTER, AImove.row, AImove.col);
-          // board.asArray[AImove.row][AImove.col].mark = COMPUTER;
-          // board.asInteger += 512*Math.pow(2,(AImove.row*3 + AImove.col));
+          boardSvc.placeMove(board, COMPUTER, AImove.row, AImove.col);
           this.updateGameOverStatus(COMPUTER, board);
         };
       };
@@ -183,9 +169,9 @@
   }]);
 
 
-  /*
+  /*************************** AI SERVICE **************************
   ** Contains the minimax function and helper methods
-  */
+  *****************************************************************/
   app.service('AISvc', ['boardSvc',
               function(boardSvc){
 
@@ -204,24 +190,22 @@
 
       var movePicked = { score: 1000 };
 
-      for (var i=0; i < board.asArray.length; i++){
-        for (var j=0; j < board.asArray[i].length; j++){
-          if (board.asArray[i][j].mark === EMPTY){
+      for (var row=0; row < board.asArray.length; row++){
+        for (var col=0; col < board.asArray[row].length; col++){
+          if (boardSvc.cellisEmpty(board, row, col)){
             var newBoard = angular.copy(board);
 
             if (turn === HUMAN){
-              newBoard.asArray[i][j].mark = HUMAN;
-              newBoard.asInteger += Math.pow(2,((3*i)+j));
+              boardSvc.placeMove(newBoard, HUMAN, row, col);
             } else {
-              newBoard.asArray[i][j].mark = COMPUTER;
-              newBoard.asInteger += 512*Math.pow(2,((3*i)+j));
+              boardSvc.placeMove(newBoard, COMPUTER, row, col);
             }
-            var nextPlayer = (turn === COMPUTER) ? HUMAN : COMPUTER;
-            var nextMove = this.getMinimaxMove(newBoard, nextPlayer);
+            var nextPlayer = (turn === COMPUTER) ? HUMAN : COMPUTER;  // Swap player and take next turn via
+            var nextMove = this.getMinimaxMove(newBoard, nextPlayer); // a recursive call to generate down to leaf node
             if (isMoveGoodFor(turn, movePicked, nextMove)){
               movePicked.score = nextMove.score;
-              movePicked.row = i;
-              movePicked.col = j;
+              movePicked.row = row;
+              movePicked.col = col;
             }
             if (turn === HUMAN && movePicked.alpha < nextMove.score){
               movePicked.alpha = nextMove.score;
@@ -270,14 +254,14 @@
     /*
     ** Helper method to determine if move and score should be updated
     */
-    var isMoveGoodFor = function(player, movePicked, nextMoveToCompare){
+    var isMoveGoodFor = function(player, movePicked, nextMove){
       if (movePicked.score === 1000){
         return true;
       }
       if (player === HUMAN){
-        return movePicked.score < nextMoveToCompare.score;
+        return movePicked.score < nextMove.score;
       }
-      return movePicked.score > nextMoveToCompare.score;
+      return movePicked.score > nextMove.score;
     };
 
   }]);
