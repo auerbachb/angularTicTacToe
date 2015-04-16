@@ -25,10 +25,11 @@ describe('Controller: GameCtrl', function() {
 
   //if I click on the board that index should get populated and the
   //correct value of my move should get added to the integer value
-  it('should update board on click', function() {
+  it('should update board on click and AI place O in middle', function() {
     GameCtrl.getMoveFromClick(0,0);
     expect(GameCtrl.board.asArray[0][0].mark).toEqual("X");
-    expect(GameCtrl.board.asInteger).toEqual(1);
+    expect(GameCtrl.board.asArray[1][1].mark).toEqual("O");
+    // expect(GameCtrl.board.asInteger).toEqual(8193);
   });
 
 

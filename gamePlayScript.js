@@ -9,8 +9,8 @@
 (function(){
 
   var app = angular.module('ticTacToe', ['ngAnimate']);
-  var COMPUTER = 'O';
-  var HUMAN    = 'X';
+  var COMPUTER = 'O';                                                 // Global alias
+  var HUMAN    = 'X';                                                 // Global alias
 
 /********************************************************************
 *************************** NAMED CONSTANTS *************************
@@ -46,7 +46,7 @@
 ********************* FACTORIES AND SERVICES ************************
 *********************************************************************/
 
-  /**
+  /*
   ** Returns a blank board for each new game
   */
   app.factory('boardFty', function(){
@@ -57,8 +57,8 @@
         inPlay: true,                                                 // affiliated with its configuration
         asInteger: 0,                                                 // Binary board representation (see header)
         asArray: [
-          [{mark: ""},{mark: ""},{mark: ""}],                         // idx used for angular to label board on dom
-          [{mark: ""},{mark: ""},{mark: ""}],                         // to get click location
+          [{mark: ""},{mark: ""},{mark: ""}],
+          [{mark: ""},{mark: ""},{mark: ""}],
           [{mark: ""},{mark: ""},{mark: ""}]
         ]
       };
@@ -81,26 +81,24 @@
     ** converting the index 0-8 into it's row/column equivalent for
     ** the 2 dimensional board
     */
-    this.cellAt = function(index, boardIn, tableRow, tableCol){ // REFACTOR using row and col
-      var row = (Math.floor(index/3));
-      var column = index%3;
-      return boardIn[row][column];
+    this.cellAt = function(board, row, col){
+      return board[row][col];
     };
 
     /*
     ** Returns true if the cell is blank
     */
-    this.openCellAt = function(cell){
+    this.cellIsOpen = function(cell){
       return (cell.mark === "");
     };
 
     /*
     ** Checks if the current move making player has won the game
     */
-    this.gameWon = function(turn, boardIn){
+    this.gameWon = function(turn, board){
       var winsToCheck = WINS_FOR[turn];
       for (var i = 0; i < winsToCheck.length; i++){
-        if (boardIn === (winsToCheck[i] | boardIn)){
+        if (board === (winsToCheck[i] | board)){
           return true;
         }
       }
@@ -110,9 +108,11 @@
     /*
     ** Checks if every cell on the board is occupied
     */
-    this.gameDraw = function(boardIn){
-      for (var i=0; i < BOARD_SIZE; i++){
-        if (this.openCellAt(this.cellAt(i, boardIn))){
+    this.gameDraw = function(board){
+      for (var index = 0; index < BOARD_SIZE; index++){
+        var row = (Math.floor(index/3));
+        var col = index%3;
+        if (this.cellIsOpen(this.cellAt(board, row, col))){
           return false;
         }
       }
@@ -133,13 +133,13 @@
     ** Updates boolean representing whether game is over and
     ** sets the gameOverMessage to the appropriate value.
     */
-    this.updateGameOverStatus = function(turn, boardIn){
-      if (boardSvc.gameWon(turn, boardIn.asInteger)){
+    this.updateGameOverStatus = function(turn, board){
+      if (boardSvc.gameWon(turn, board.asInteger)){
         this.gameOverMessage = turn + " HAS WON";
-        boardIn.inPlay = false;
-      } else if (boardSvc.gameDraw(boardIn.asArray)){
+        board.inPlay = false;
+      } else if (boardSvc.gameDraw(board.asArray)){
         this.gameOverMessage = "IT'S A DRAW";
-        boardIn.inPlay = false;
+        board.inPlay = false;
       }
     };
 
@@ -148,18 +148,17 @@
     ** minimax function to get the AI player's move and updates the
     ** board with the AI player's move.
     */
-    this.addHumanMoveThenGetAiMove = function(boardIn, moveIn, tableRow, tableCol){ //CHANGE PARAM NAMES TO GET RID OF IN
-      var cellToMark = boardSvc.cellAt(moveIn, boardIn.asArray);
-      if (boardSvc.openCellAt(cellToMark) && boardIn.inPlay){
+    this.makeHumanThenAIMove = function(board, row, col){
+      var cellToMark = boardSvc.cellAt(board.asArray, row, col);
+      if (boardSvc.cellIsOpen(cellToMark) && board.inPlay){
         cellToMark.mark = HUMAN;                                        //use symbol HUMAN
-        cons
-        boardIn.asInteger += Math.pow(2,moveIn);                      //use symbol and call addMoveAsPowerOf2 for HUMAN
-        this.updateGameOverStatus(HUMAN, boardIn);
-        if (boardIn.inPlay){
-          var AImove = AISvc.getMinimaxMove(boardIn, COMPUTER, 0); //<--getAIMove if boardIn has only 1 move on it then do x, otherwise call y
-          boardIn.asArray[AImove.row][AImove.column].mark = COMPUTER;
-          boardIn.asInteger += 512*Math.pow(2,(AImove.row*3 + AImove.column)); //use symbol and call addMoveAsPowerOf2 for COMPUTER
-          this.updateGameOverStatus(COMPUTER, boardIn);
+        board.asInteger += Math.pow(2,row*3 + col);                      //use symbol and call addMoveAsPowerOf2 for HUMAN
+        this.updateGameOverStatus(HUMAN, board);
+        if (board.inPlay){
+          var AImove = AISvc.getMinimaxMove(board, COMPUTER, 0); //<--getAIMove if board has only 1 move on it then do x, otherwise call y
+          board.asArray[AImove.row][AImove.column].mark = COMPUTER;
+          board.asInteger += 512*Math.pow(2,(AImove.row*3 + AImove.column)); //use symbol and call addMoveAsPowerOf2 for COMPUTER
+          this.updateGameOverStatus(COMPUTER, board);
         };
       };
     }
@@ -176,21 +175,21 @@
     ** recursively generates all possible board states and uses
     ** minimax to return a move
     */
-    this.getMinimaxMove = function(boardIn, turn){
-      if(boardSvc.gameWon(HUMAN, boardIn.asInteger)){
+    this.getMinimaxMove = function(board, turn){
+      if(boardSvc.gameWon(HUMAN, board.asInteger)){
         return xWonScore();
-      } else if (boardSvc.gameWon(COMPUTER, boardIn.asInteger)){
+      } else if (boardSvc.gameWon(COMPUTER, board.asInteger)){
         return oWonScore();
-      } else if (boardSvc.gameDraw(boardIn.asArray)){
+      } else if (boardSvc.gameDraw(board.asArray)){
         return drawScore();
       }
 
       var movePicked = { score: 1000 };
 
-      for (var i=0; i < boardIn.asArray.length; i++){
-        for (var j=0; j < boardIn.asArray[i].length; j++){
-          if (boardIn.asArray[i][j].mark === ""){
-            var newBoard = angular.copy(boardIn);
+      for (var i=0; i < board.asArray.length; i++){
+        for (var j=0; j < board.asArray[i].length; j++){
+          if (board.asArray[i][j].mark === ""){
+            var newBoard = angular.copy(board);
 
             if (turn === HUMAN){
               newBoard.asArray[i][j].mark = HUMAN;
@@ -275,21 +274,29 @@
     function($scope, $timeout, AISvc, gameSvc,
              boardFty){
 
+      /*
+      ** Generates empty board, resets showMessage (to ensure it
+      ** disappears immediately upon click of new game)
+      */
       this.newGame = function(){
         this.board = boardFty.getNew();
-        this.gameOverMessage = null;
         $scope.showMessage = false;
       };
 
+      /*
+      ** Updates board with user click from DOM, gets AI move and
+      ** updates board with AI move
+      */
       this.getMoveFromClick = function(tableRow, tableCol){
-        console.log(tableRow, tableCol);
-        var index = (tableRow*3 + tableCol);
-        gameSvc.addHumanMoveThenGetAiMove(this.board, index, tableRow, tableCol);
+        gameSvc.makeHumanThenAIMove(this.board, tableRow, tableCol);
         this.showMessageIfgameEnded();
       };
 
+      /*
+      ** Flashes message if game ended
+      */
       this.showMessageIfgameEnded = function(){
-        if (!this.board.inPlay){ // needs be passed
+        if (!this.board.inPlay){
           this.gameOverMessage = gameSvc.gameOverMessage;
           $scope.showMessage = true;
           $timeout(function(){
@@ -298,12 +305,15 @@
         }
       };
 
-      this.initializeNewGameOnLoad = function(){                      // Loads a new board object on first page load so
-        return this.newGame();                                        // user doesn't have to click the newGame button
+      /*
+      ** Loads a new board object on first page load so
+      ** user doesn't have to click the newGame button
+      */
+      this.initializeNewGameOnLoad = function(){
+        return this.newGame();
       };
 
-      this.initializeNewGameOnLoad();                                 // Calls initializeNewGameOnLoad
-
+      this.initializeNewGameOnLoad();
 
     }
   ]);
