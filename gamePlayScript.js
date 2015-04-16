@@ -303,13 +303,13 @@
       */
       this.getMoveFromClick = function(tableRow, tableCol){
         gameSvc.makeHumanThenAIMove(this.board, tableRow, tableCol);
-        this.showMessageIfgameEnded();
+        this.showMessageIfGameEnded();
       };
 
       /*
       ** Flashes message if game ended
       */
-      this.showMessageIfgameEnded = function(){
+      this.showMessageIfGameEnded = function(){
         if (!this.board.inPlay){
           this.gameOverMessage = gameSvc.gameOverMessage;
           $scope.showMessage = true;
