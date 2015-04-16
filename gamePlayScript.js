@@ -9,8 +9,9 @@
 (function(){
 
   var app = angular.module('ticTacToe', ['ngAnimate']);
-  var COMPUTER = 'O';                                                 // Global alias
-  var HUMAN    = 'X';                                                 // Global alias
+  var COMPUTER = "O";                                                 // Global alias
+  var HUMAN    = "X";                                                 // Global alias
+  var EMPTY    = "";                                                  // Global alias
 
 /********************************************************************
 *************************** NAMED CONSTANTS *************************
@@ -57,9 +58,9 @@
         inPlay: true,                                                 // affiliated with its configuration
         asInteger: 0,                                                 // Binary board representation (see header)
         asArray: [
-          [{mark: ""},{mark: ""},{mark: ""}],
-          [{mark: ""},{mark: ""},{mark: ""}],
-          [{mark: ""},{mark: ""},{mark: ""}]
+          [{mark: EMPTY},{mark: EMPTY},{mark: EMPTY}],
+          [{mark: EMPTY},{mark: EMPTY},{mark: EMPTY}],
+          [{mark: EMPTY},{mark: EMPTY},{mark: EMPTY}]
         ]
       };
     };
@@ -92,6 +93,10 @@
       return (cell.mark === "");
     };
 
+    this.cellisEmpty = function(board, row, col){
+      return (board.asArray[row][col].mark === EMPTY);
+    };
+
     /*
     ** Checks if the current move making player has won the game
     */
@@ -112,7 +117,8 @@
       for (var index = 0; index < BOARD_SIZE; index++){
         var row = (Math.floor(index/3));
         var col = index%3;
-        if (this.cellIsOpen(this.cellAt(board, row, col))){
+        // if (this.cellIsOpen(this.cellAt(board, row, col))){
+        if (this.cellisEmpty(board, row, col)){
           return false;
         }
       }
@@ -137,11 +143,21 @@
       if (boardSvc.gameWon(turn, board.asInteger)){
         this.gameOverMessage = turn + " HAS WON";
         board.inPlay = false;
-      } else if (boardSvc.gameDraw(board.asArray)){
+      } else if (boardSvc.gameDraw(board)){
         this.gameOverMessage = "IT'S A DRAW";
         board.inPlay = false;
       }
     };
+
+    var placeMove = function(board, player, row, col){
+      if (player === HUMAN){
+        board.asArray[row][col].mark = HUMAN;
+        board.asInteger += Math.pow(2,row*3 + col);
+      } else {
+        board.asArray[row][col].mark = COMPUTER;
+        board.asInteger += 512*Math.pow(2,row*3 + col);
+      }
+    }
 
     /*
     ** Updates the board with the human player's move then calls the
@@ -149,15 +165,17 @@
     ** board with the AI player's move.
     */
     this.makeHumanThenAIMove = function(board, row, col){
-      var cellToMark = boardSvc.cellAt(board.asArray, row, col);
-      if (boardSvc.cellIsOpen(cellToMark) && board.inPlay){
-        cellToMark.mark = HUMAN;                                        //use symbol HUMAN
-        board.asInteger += Math.pow(2,row*3 + col);                      //use symbol and call addMoveAsPowerOf2 for HUMAN
+      // var cellToMark = board.asArray[row][col];
+      if (boardSvc.cellisEmpty(board, row, col) && board.inPlay){
+        placeMove(board, HUMAN, row, col);
+        // cellToMark.mark = HUMAN;
+        // board.asInteger += Math.pow(2,row*3 + col);
         this.updateGameOverStatus(HUMAN, board);
         if (board.inPlay){
-          var AImove = AISvc.getMinimaxMove(board, COMPUTER, 0); //<--getAIMove if board has only 1 move on it then do x, otherwise call y
-          board.asArray[AImove.row][AImove.column].mark = COMPUTER;
-          board.asInteger += 512*Math.pow(2,(AImove.row*3 + AImove.column)); //use symbol and call addMoveAsPowerOf2 for COMPUTER
+          var AImove = AISvc.getMinimaxMove(board, COMPUTER, 0);
+          placeMove(board, COMPUTER, AImove.row, AImove.col);
+          // board.asArray[AImove.row][AImove.col].mark = COMPUTER;
+          // board.asInteger += 512*Math.pow(2,(AImove.row*3 + AImove.col));
           this.updateGameOverStatus(COMPUTER, board);
         };
       };
@@ -180,7 +198,7 @@
         return xWonScore();
       } else if (boardSvc.gameWon(COMPUTER, board.asInteger)){
         return oWonScore();
-      } else if (boardSvc.gameDraw(board.asArray)){
+      } else if (boardSvc.gameDraw(board)){
         return drawScore();
       }
 
@@ -188,7 +206,7 @@
 
       for (var i=0; i < board.asArray.length; i++){
         for (var j=0; j < board.asArray[i].length; j++){
-          if (board.asArray[i][j].mark === ""){
+          if (board.asArray[i][j].mark === EMPTY){
             var newBoard = angular.copy(board);
 
             if (turn === HUMAN){
@@ -203,7 +221,7 @@
             if (isMoveGoodFor(turn, movePicked, nextMove)){
               movePicked.score = nextMove.score;
               movePicked.row = i;
-              movePicked.column = j;
+              movePicked.col = j;
             }
             if (turn === HUMAN && movePicked.alpha < nextMove.score){
               movePicked.alpha = nextMove.score;
