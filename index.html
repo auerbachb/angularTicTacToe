@@ -2,19 +2,26 @@
 <html ng-app="ticTacToe">
 <head>
   <title>Angular TicTacToe</title>
+
   <!-- Style files / Formatting -->
   <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
   <link rel="stylesheet" type="text/css" href="style.css">
 </head>
+
 <!-- Game Elements -->
 <body ng-controller="GameCtrl as game">
-  <!-- TicTacToe Board -->
+
+  <!-- Center all elements responsively -->
   <div class="jumbotron vertical-center">
     <div class="container text-center">
     <div class="message-box">
+
+    <!-- game over message holder -->
       <div ng-show="showMessage" class="message fadein fadeout">
         {{game.gameOverMessage}}
       </div>
+
+    <!-- TicTacToe Board -->
     </div>
       <table>
         <tr ng-repeat="row in game.board.asArray"
@@ -26,6 +33,8 @@
           </td>
         </tr>
       </table>
+
+      <!-- Reset game button -->
       <br>
       <a ng-click="game.newGame()"
          class="top-margin btn btn-large btn-block h2"
@@ -34,6 +43,7 @@
       </a>
     </div>
   </div>
+
   <!-- AngularJS Files -->
   <script type="text/javascript" src="angular.min.js"></script>
   <script type="text/javascript" src="angular-animate.min.js"></script>

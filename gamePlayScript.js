@@ -1,17 +1,9 @@
-// add alpha beta pruning
-//ultimately separate files as per https://github.com/angular/angular-phonecat
-//maybe move game stuff from index into a view and use view directive plus route to insert it
-//this way you can add a link to about to show you know how to use routers in angular, use the ui_router
-//use webstorm or jslint or the like to proof the syntax
-// http://www.codecademy.com/blog/78-your-guide-to-semicolons-in-javascript
-//how to use js doc?
-
 (function(){
 
   var app = angular.module('ticTacToe', ['ngAnimate']);
   var COMPUTER = "O";                                                 // Global alias
   var HUMAN    = "X";                                                 // Global alias
-  var EMPTY    = "";                                                  // Global alias
+  var EMPTY    =  "";                                                 // Global alias
 
 /********************************************************************
 *************************** NAMED CONSTANTS *************************
@@ -71,8 +63,8 @@
 
   /************************* BOARD SERVICE *************************
   ** Provides information about the board: whether the game has been
-  ** won or ended in a draw, whether a cell is open, and what the
-  ** relative cell is from the 1d to 2d array.
+  ** won or ended in a draw, and whether a cell is open. Provides
+  ** method to update the board with moves.
   ******************************************************************/
   app.service('boardSvc', ['WINS_FOR', 'BOARD_SIZE',
                function(WINS_FOR, BOARD_SIZE){
@@ -102,10 +94,10 @@
     ** Returns true if one of the winning patters is found on
     ** the board passed
     */
-    this.gameWon = function(turn, board){
+    this.gameWon = function(board, turn){
       var winsToCheck = WINS_FOR[turn];
       for (var i = 0; i < winsToCheck.length; i++){
-        if (board === (winsToCheck[i] | board)){
+        if (board.asInteger === (winsToCheck[i] | board.asInteger)){
           return true;
         }
       }
@@ -140,8 +132,8 @@
     ** Updates boolean representing whether game is over and
     ** sets the gameOverMessage to the appropriate value.
     */
-    this.updateGameOverStatus = function(turn, board){
-      if (boardSvc.gameWon(turn, board.asInteger)){
+    this.updateGameOverStatus = function(board, turn){
+      if (boardSvc.gameWon(board, turn)){
         this.gameOverMessage = turn + " HAS WON";
         board.inPlay = false;
       } else if (boardSvc.gameDraw(board)){
@@ -158,11 +150,11 @@
     this.makeHumanThenAIMove = function(board, row, col){
       if (boardSvc.cellisEmpty(board, row, col) && board.inPlay){
         boardSvc.placeMove(board, HUMAN, row, col);
-        this.updateGameOverStatus(HUMAN, board);
+        this.updateGameOverStatus(board, HUMAN);
         if (board.inPlay){
-          var AImove = AISvc.getMinimaxMove(board, COMPUTER, 0);
+          var AImove = AISvc.getAIMove(board);
           boardSvc.placeMove(board, COMPUTER, AImove.row, AImove.col);
-          this.updateGameOverStatus(COMPUTER, board);
+          this.updateGameOverStatus(board, COMPUTER);
         };
       };
     }
@@ -176,47 +168,57 @@
               function(boardSvc){
 
     /*
+    ** Wrapper for minimax move passes starting parameters providing a
+    ** cleaner interface to call the AISvc for a move .
+    ** (Potential interface for other methods of AI playing).
+    */
+    this.getAIMove = function(board){
+      return this.getMinimaxMove(board, COMPUTER, -100, 100);
+    }
+
+    /*
     ** recursively generates all possible board states and uses
     ** minimax to return a move
     */
-    this.getMinimaxMove = function(board, turn){
-      if(boardSvc.gameWon(HUMAN, board.asInteger)){
+    this.getMinimaxMove = function(board, player, alpha, beta){
+
+      if(boardSvc.gameWon(board, HUMAN)){
         return xWonScore();
-      } else if (boardSvc.gameWon(COMPUTER, board.asInteger)){
+      } else if (boardSvc.gameWon(board, COMPUTER)){
         return oWonScore();
       } else if (boardSvc.gameDraw(board)){
         return drawScore();
       }
 
-      var movePicked = { score: 1000 };
+      var movePicked = { score: null };
 
       for (var row=0; row < board.asArray.length; row++){
         for (var col=0; col < board.asArray[row].length; col++){
           if (boardSvc.cellisEmpty(board, row, col)){
             var newBoard = angular.copy(board);
 
-            if (turn === HUMAN){
+            if (player === HUMAN){
               boardSvc.placeMove(newBoard, HUMAN, row, col);
             } else {
               boardSvc.placeMove(newBoard, COMPUTER, row, col);
             }
-            var nextPlayer = (turn === COMPUTER) ? HUMAN : COMPUTER;  // Swap player and take next turn via
-            var nextMove = this.getMinimaxMove(newBoard, nextPlayer); // a recursive call to generate down to leaf node
-            if (isMoveGoodFor(turn, movePicked, nextMove)){
-              movePicked.score = nextMove.score;
-              movePicked.row = row;
-              movePicked.col = col;
+            var nextPlayer = (player === COMPUTER) ? HUMAN : COMPUTER;
+            var nextMove = this.getMinimaxMove(newBoard,              //recursive call
+                                               nextPlayer,
+                                               alpha, beta);
+            if (playerShouldUpdate(player, movePicked, nextMove)){
+              updateMove(movePicked, nextMove, row, col);
             }
-            if (turn === HUMAN && movePicked.alpha < nextMove.score){
-              movePicked.alpha = nextMove.score;
-            } else if (turn === COMPUTER && movePicked.beta > nextMove.score){
-              movePicked.beta = nextMove.score;
-            }
+            if (player === HUMAN && alpha < nextMove.score){
+              alpha = nextMove.score;
+            } else if (player === COMPUTER && beta > nextMove.score){
+              beta = nextMove.score;
+            };
           }
         }
-        if (movePicked.alpha >= movePicked.beta){
+        if (alpha >= beta){
           break;
-        }
+        };
       }
       return movePicked;
     }
@@ -254,15 +256,26 @@
     /*
     ** Helper method to determine if move and score should be updated
     */
-    var isMoveGoodFor = function(player, movePicked, nextMove){
-      if (movePicked.score === 1000){
+    var playerShouldUpdate = function(player, movePicked, nextMove){
+      if (movePicked.score === null){
         return true;
       }
       if (player === HUMAN){
         return movePicked.score < nextMove.score;
       }
       return movePicked.score > nextMove.score;
-    };
+    }
+
+    /*
+    ** Helper method to update the movePicked object with the chosen
+    ** move and its heuristic value
+    */
+    var updateMove = function(movePicked, nextMove, row, col){
+      movePicked.score = nextMove.score;
+      movePicked.row   = row;
+      movePicked.col   = col;
+      return movePicked;
+    }
 
   }]);
 
@@ -272,9 +285,8 @@
   *******************************************************************/
 
   app.controller('GameCtrl', ['$scope','$timeout',
-    'AISvc', 'gameSvc','boardFty',
-    function($scope, $timeout, AISvc, gameSvc,
-             boardFty){
+                 'AISvc', 'gameSvc','boardFty',
+                 function($scope, $timeout, AISvc, gameSvc, boardFty){
 
       /*
       ** Generates empty board, resets showMessage (to ensure it
