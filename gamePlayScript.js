@@ -9,6 +9,8 @@
 (function(){
 
   var app = angular.module('ticTacToe', ['ngAnimate']);
+  var COMPUTER = 'O';
+  var HUMAN    = 'X';
 
 /********************************************************************
 *************************** NAMED CONSTANTS *************************
@@ -38,15 +40,13 @@
   });
 
   app.constant('BOARD_SIZE', 9);                                      // Can't adjust board (just named for readability)
-  app.constant('COMPUTER', 'O');                                      // In this simple implementation human and
-  app.constant('HUMAN',    'X');                                      // computer players are always the same char's
 
 
 /********************************************************************
 ********************* FACTORIES AND SERVICES ************************
 *********************************************************************/
 
-  /*
+  /**
   ** Returns a blank board for each new game
   */
   app.factory('boardFty', function(){
@@ -151,14 +151,15 @@
     this.addHumanMoveThenGetAiMove = function(boardIn, moveIn, tableRow, tableCol){ //CHANGE PARAM NAMES TO GET RID OF IN
       var cellToMark = boardSvc.cellAt(moveIn, boardIn.asArray);
       if (boardSvc.openCellAt(cellToMark) && boardIn.inPlay){
-        cellToMark.mark = "X";                                        //use symbol HUMAN
+        cellToMark.mark = HUMAN;                                        //use symbol HUMAN
+        cons
         boardIn.asInteger += Math.pow(2,moveIn);                      //use symbol and call addMoveAsPowerOf2 for HUMAN
-        this.updateGameOverStatus("X", boardIn);
+        this.updateGameOverStatus(HUMAN, boardIn);
         if (boardIn.inPlay){
-          var AImove = AISvc.getMinimaxMove(boardIn, "O", 0);
-          boardIn.asArray[AImove.row][AImove.column].mark = "O";
+          var AImove = AISvc.getMinimaxMove(boardIn, COMPUTER, 0); //<--getAIMove if boardIn has only 1 move on it then do x, otherwise call y
+          boardIn.asArray[AImove.row][AImove.column].mark = COMPUTER;
           boardIn.asInteger += 512*Math.pow(2,(AImove.row*3 + AImove.column)); //use symbol and call addMoveAsPowerOf2 for COMPUTER
-          this.updateGameOverStatus("O", boardIn);
+          this.updateGameOverStatus(COMPUTER, boardIn);
         };
       };
     }
@@ -176,9 +177,9 @@
     ** minimax to return a move
     */
     this.getMinimaxMove = function(boardIn, turn){
-      if(boardSvc.gameWon("X", boardIn.asInteger)){
+      if(boardSvc.gameWon(HUMAN, boardIn.asInteger)){
         return xWonScore();
-      } else if (boardSvc.gameWon("O", boardIn.asInteger)){
+      } else if (boardSvc.gameWon(COMPUTER, boardIn.asInteger)){
         return oWonScore();
       } else if (boardSvc.gameDraw(boardIn.asArray)){
         return drawScore();
@@ -191,23 +192,23 @@
           if (boardIn.asArray[i][j].mark === ""){
             var newBoard = angular.copy(boardIn);
 
-            if (turn === "X"){
-              newBoard.asArray[i][j].mark = "X";
+            if (turn === HUMAN){
+              newBoard.asArray[i][j].mark = HUMAN;
               newBoard.asInteger += Math.pow(2,((3*i)+j));
             } else {
-              newBoard.asArray[i][j].mark = "O";
+              newBoard.asArray[i][j].mark = COMPUTER;
               newBoard.asInteger += 512*Math.pow(2,((3*i)+j));
             }
-            var nextPlayer = (turn === "O") ? "X" : "O";
+            var nextPlayer = (turn === COMPUTER) ? HUMAN : COMPUTER;
             var nextMove = this.getMinimaxMove(newBoard, nextPlayer);
             if (isMoveGoodFor(turn, movePicked, nextMove)){
               movePicked.score = nextMove.score;
               movePicked.row = i;
               movePicked.column = j;
             }
-            if (turn === "X" && movePicked.alpha < nextMove.score){
+            if (turn === HUMAN && movePicked.alpha < nextMove.score){
               movePicked.alpha = nextMove.score;
-            } else if (turn === "O" && movePicked.beta > nextMove.score){
+            } else if (turn === COMPUTER && movePicked.beta > nextMove.score){
               movePicked.beta = nextMove.score;
             }
           }
@@ -256,41 +257,13 @@
       if (movePicked.score === 1000){
         return true;
       }
-      if (player === "X"){
+      if (player === HUMAN){
         return movePicked.score < nextMoveToCompare.score;
       }
       return movePicked.score > nextMoveToCompare.score;
     };
 
   }]);
-
-/*
-app.directive('notification', function($timeout){
-  return {
-    restrict: 'E',
-    replace: true,
-    scope: {
-      ngModel: '='
-    },
-    template: '<div class="alert fade" bs-alert="ngModel"></div>',
-    link: function(scope, element, attrs){
-      $timeout(function(){
-        element.hide();
-      }, 3000);
-    }
-  }
-});
-
-app.controller('AlertController', function($scope){
-    $scope.message = {
-      "type": "info",
-      "title": "Success!",
-      "content": "alert directive is working pretty well with 3 sec timeout"
-    };
-});
-
-<notification ng-model="message"></notification>
-*/
 
 
   /******************************************************************
@@ -315,7 +288,7 @@ app.controller('AlertController', function($scope){
         this.showMessageIfgameEnded();
       };
 
-      this.showMessageIfgameEnded = function(){                       // HOW TO PULL OUT INTO A DIRECTIVE OR STH, POSSIBILITY ABOVE
+      this.showMessageIfgameEnded = function(){
         if (!this.board.inPlay){ // needs be passed
           this.gameOverMessage = gameSvc.gameOverMessage;
           $scope.showMessage = true;
